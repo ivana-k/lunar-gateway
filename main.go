@@ -6,6 +6,5 @@ import (
 
 func main() {
 	server := server.NewServer("localhost", "8080")
-	server.Test()
 	server.Start()
 }

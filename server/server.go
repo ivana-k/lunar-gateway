@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
@@ -30,10 +29,6 @@ func NewServer(address, port string) *LunarServer {
 	return server
 }
 
-func (server *LunarServer) Test() {
-	fmt.Println("Test")
-}
-
 func (server *LunarServer) setup() {
 	server.setupConfigs()
 	server.setupSecrets()
@@ -41,7 +36,6 @@ func (server *LunarServer) setup() {
 
 func (server *LunarServer) resolve() string {
 	s := []string{server.address, server.port}
-
 	return strings.Join(s, ":")
 }
 
