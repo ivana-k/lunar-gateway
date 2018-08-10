@@ -6,6 +6,7 @@ import (
 	pb "github.com/c12s/celestial/pb"
 	"github.com/c12s/lunar-gateway/model"
 	"github.com/gorilla/mux"
+	"golang.org/x/net/context"
 	"io"
 	"io/ioutil"
 	"log"
@@ -86,7 +87,21 @@ func (s *LunarServer) createConfigs() http.HandlerFunc {
 		}
 
 		fmt.Println(data)
-		fmt.Println(mutateToProto(data))
+
+		req := mutateToProto(data)
+		fmt.Println(req)
+
+		//Call celestiall RPC
+		resp, err := s.client.Mutate(context.Background(), req)
+		if err != nil {
+			sendErrorMessage(w, "Error from Celestial Service!", http.StatusBadRequest)
+		}
+
+		if resp.Error == "NONE" {
+			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
+		}
+
+		fmt.Println(resp.Error)
 
 		//check rights
 
@@ -127,7 +142,7 @@ func mutateToProto(data model.KVS) *pb.MutateReq {
 	req := &pb.MutateReq{
 		RegionId:  data.RegionID,
 		ClusterId: data.ClusterID,
-		Label:     labels,
+		Labels:    labels,
 		Data:      configs,
 		Kind:      pb.ReqKind_CONFIGS,
 	}
