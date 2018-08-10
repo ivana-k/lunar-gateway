@@ -1,9 +1,9 @@
 package server
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
-	"github.com/c12s/lunar-gateway/model"
+	// "github.com/c12s/lunar-gateway/model"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -68,14 +68,6 @@ func (s *LunarServer) getProcessSecrets() http.HandlerFunc {
 
 func (s *LunarServer) createSecrets() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := model.Data{}
-
-		//get data
-		err := json.NewDecoder(r.Body).Decode(&data)
-		if err != nil {
-			panic(err)
-		}
-
 		//check rights
 
 		//put to queue

@@ -3,8 +3,12 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	pb "github.com/c12s/celestial/pb"
 	"github.com/c12s/lunar-gateway/model"
 	"github.com/gorilla/mux"
+	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -68,21 +72,88 @@ func (s *LunarServer) getProcessConfigs() http.HandlerFunc {
 
 func (s *LunarServer) createConfigs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := model.Data{}
-
-		//get data
-		err := json.NewDecoder(r.Body).Decode(&data)
+		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			panic(err)
+			log.Printf("Failed to read the request body: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
+
+		data := model.KVS{}
+		if err := json.Unmarshal(body, &data); err != nil {
+			sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
+			return
+		}
+
+		fmt.Println(data)
+		fmt.Println(mutateToProto(data))
 
 		//check rights
 
 		//put to queue
 
 		//return answer
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Create Configs")
+		sendJSONResponse(w, map[string]string{"message": "success"})
 	}
+}
+
+func mutateToProto(data model.KVS) *pb.MutateReq {
+	labelsKV := []*pb.KV{}
+	dataKV := []*pb.KV{}
+
+	for _, item := range data.Labels {
+		kv := &pb.KV{
+			Key:   item.Key,
+			Value: item.Value,
+		}
+		labelsKV = append(labelsKV, kv)
+	}
+
+	for _, item := range data.Data {
+		kv := &pb.KV{
+			Key:   item.Key,
+			Value: item.Value,
+		}
+		dataKV = append(dataKV, kv)
+	}
+
+	labels := &pb.Label{
+		Labels: labelsKV,
+	}
+	configs := &pb.Data{
+		Data: dataKV,
+	}
+
+	req := &pb.MutateReq{
+		RegionId:  data.RegionID,
+		ClusterId: data.ClusterID,
+		Label:     labels,
+		Data:      configs,
+		Kind:      pb.ReqKind_CONFIGS,
+	}
+
+	return req
+}
+
+func sendJSONResponse(w http.ResponseWriter, data interface{}) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		log.Printf("Failed to encode a JSON response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(body)
+	if err != nil {
+		log.Printf("Failed to write the response body: %v", err)
+		return
+	}
+}
+
+func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.WriteHeader(status)
+	io.WriteString(w, msg)
 }
