@@ -44,7 +44,32 @@ func (s *LunarServer) getClusterConfigs() http.HandlerFunc {
 		regionid := vars["regionid"]
 		clusterid := vars["clusterid"]
 
-		fmt.Fprintf(w, "Get Configs region:%s, cluster:%s", regionid, clusterid)
+		keys := r.URL.Query()
+		labelsKV := []*pb.KV{}
+		for k, v := range keys {
+			l := &pb.KV{
+				Key:   k,
+				Value: v[0],
+			}
+			labelsKV = append(labelsKV, l)
+		}
+
+		labels := &pb.Label{
+			Labels: labelsKV,
+		}
+		req := &pb.ListReq{
+			RegionId:  regionid,
+			ClusterId: clusterid,
+			Labels:    labels,
+			Kind:      pb.ReqKind_CONFIGS,
+		}
+
+		resp, err := s.client.List(context.Background(), req)
+		if err != nil {
+			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
+		}
+
+		sendJSONResponse(w, resp.Data)
 	}
 }
 
@@ -86,10 +111,7 @@ func (s *LunarServer) createConfigs() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println(data)
-
 		req := mutateToProto(data)
-		fmt.Println(req)
 
 		//Call celestiall RPC
 		resp, err := s.client.Mutate(context.Background(), req)
