@@ -6,25 +6,22 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type LunarServer struct {
 	r       *mux.Router
 	address string
-	port    string
 	client  celestialPb.CelestialServiceClient
 
 	//queue for createion of new configs, secrets, roles, ...
 }
 
-func NewServer(address, port string) *LunarServer {
+func NewServer(serverAddress, clientAddress string) *LunarServer {
 	//create server struct
 	server := &LunarServer{
 		r:       mux.NewRouter(),
-		address: address,
-		port:    port,
-		client:  getRolesClient("localhost:8000"),
+		address: serverAddress,
+		client:  getRolesClient(clientAddress),
 	}
 
 	//setup routes
@@ -39,13 +36,8 @@ func (server *LunarServer) setup() {
 	server.setupSecrets()
 }
 
-func (server *LunarServer) resolve() string {
-	s := []string{server.address, server.port}
-	return strings.Join(s, ":")
-}
-
 func (server *LunarServer) Start() {
-	http.ListenAndServe(server.resolve(), server.r)
+	http.ListenAndServe(server.address, server.r)
 }
 
 func getRolesClient(address string) celestialPb.CelestialServiceClient {
