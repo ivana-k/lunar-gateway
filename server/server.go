@@ -2,6 +2,7 @@ package server
 
 import (
 	celestialPb "github.com/c12s/celestial/pb"
+	"github.com/c12s/lunar-gateway/model/configs"
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc"
 	"log"
@@ -16,12 +17,12 @@ type LunarServer struct {
 	//queue for createion of new configs, secrets, roles, ...
 }
 
-func NewServer(serverAddress, clientAddress string) *LunarServer {
+func NewServer(conf *configs.Config) *LunarServer {
 	//create server struct
 	server := &LunarServer{
 		r:       mux.NewRouter(),
-		address: serverAddress,
-		client:  getRolesClient(clientAddress),
+		address: conf.ServerConf.Address,
+		client:  getRolesClient(conf.ServicesConf.Celestial.Addr),
 	}
 
 	//setup routes

@@ -1,0 +1,13 @@
+lunar-gateway:
+  version: v1
+  server:
+    security:
+      cert: path/to/file/
+      key: path/to/file/
+      trusted: path/to/file/
+    address: localhost:8080
+    dialtimeout: 5
+    requesttimeout: 10
+  services:
+    celestial:
+      address: localhost:8000
