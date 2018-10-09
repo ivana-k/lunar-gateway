@@ -3,19 +3,17 @@ package server
 import (
 	// "encoding/json"
 	"fmt"
-	// "github.com/c12s/lunar-gateway/model"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func (server *LunarServer) setupSecrets() {
-	server.r.HandleFunc("/secrets", server.getSecrets()).Methods("GET")
-	server.r.HandleFunc("/secrets/{regionid}", server.getRegionSecrets()).Methods("GET")
-	server.r.HandleFunc("/secrets/{regionid}/{clusterid}", server.getClusterSecrets()).Methods("GET")
-	server.r.HandleFunc("/secrets/{regionid}/{clusterid}/{nodeid}", server.getNodeSecrets()).Methods("GET")
-	server.r.HandleFunc("/secrets/{regionid}/{clusterid}/{nodeid}/{processid}", server.getProcessSecrets()).Methods("GET")
+	secrets := server.r.PathPrefix("/secrets").Subrouter()
 
-	server.r.HandleFunc("/secrets/new", server.createSecrets()).Methods("POST")
+	secrets.HandleFunc("/", server.getSecrets()).Methods("GET")
+	secrets.HandleFunc("/{regionid}", server.getRegionSecrets()).Methods("GET")
+	secrets.HandleFunc("/{regionid}/{clusterid}", server.getClusterSecrets()).Methods("GET")
+	secrets.HandleFunc("/new", server.createSecrets()).Methods("POST")
 }
 
 func (s *LunarServer) getSecrets() http.HandlerFunc {
@@ -40,29 +38,6 @@ func (s *LunarServer) getClusterSecrets() http.HandlerFunc {
 		clusterid := vars["clusterid"]
 
 		fmt.Fprintf(w, "Get Configs region:%s cluster:%s", regionid, clusterid)
-	}
-}
-
-func (s *LunarServer) getNodeSecrets() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		regionid := vars["regionid"]
-		clusterid := vars["clusterid"]
-		nodeid := vars["nodeid"]
-
-		fmt.Fprintf(w, "Get Configs region:%s, cluster:%s, nodeid:%s", regionid, clusterid, nodeid)
-	}
-}
-
-func (s *LunarServer) getProcessSecrets() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		regionid := vars["regionid"]
-		clusterid := vars["clusterid"]
-		nodeid := vars["nodeid"]
-		processid := vars["processid"]
-
-		fmt.Fprintf(w, "Get Configs region:%s, cluster:%s, node:%s, process:%s", regionid, clusterid, nodeid, processid)
 	}
 }
 
