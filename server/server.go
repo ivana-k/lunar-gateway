@@ -1,12 +1,9 @@
 package server
 
 import (
-	celestialPb "github.com/c12s/celestial/pb"
 	"github.com/c12s/lunar-gateway/model/configs"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	// "google.golang.org/grpc"
-	// "log"
 	"net/http"
 	"os"
 	"strings"
@@ -15,10 +12,10 @@ import (
 type LunarServer struct {
 	r       *mux.Router
 	address string
-	client  celestialPb.CelestialServiceClient
+	clients map[string]string
 }
 
-func createRouter(version string) *mux.Router {
+func createBaseRouter(version string) *mux.Router {
 	r := mux.NewRouter().StrictSlash(false)
 	prefix := strings.Join([]string{"/api", version}, "/")
 	return r.PathPrefix(prefix).Subrouter()
@@ -27,36 +24,25 @@ func createRouter(version string) *mux.Router {
 func NewServer(conf *configs.Config) *LunarServer {
 	//create server struct
 	server := &LunarServer{
-		r:       createRouter(conf.ConfVersion),
+		r:       createBaseRouter(conf.ConfVersion),
 		address: conf.ServerConf.Address,
-		// client:  getRolesClient(conf.ServicesConf.Celestial.Addr),
+		clients: conf.ServicesConf,
 	}
 
 	//setup routes
-	server.setup()
+	server.setupEndpoints()
 
 	//if all is good return server
 	return server
 }
 
-func (server *LunarServer) setup() {
+func (server *LunarServer) setupEndpoints() {
 	server.setupConfigs()
 	server.setupSecrets()
 	server.setupActions()
 	server.setupNamespaces()
-	// server.setupArtifacts()
 }
 
 func (server *LunarServer) Start() {
-	// http.ListenAndServe(server.address, server.r)
 	http.ListenAndServe(server.address, handlers.LoggingHandler(os.Stdout, server.r))
 }
-
-// func getRolesClient(address string) celestialPb.CelestialServiceClient {
-// 	conn, err := grpc.Dial(address, grpc.WithInsecure())
-// 	if err != nil {
-// 		log.Fatalf("Failed to start gRPC connection: %v", err)
-// 	}
-
-// 	return celestialPb.NewCelestialServiceClient(conn)
-// }
