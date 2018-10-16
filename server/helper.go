@@ -32,7 +32,7 @@ func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
 	io.WriteString(w, msg)
 }
 
-func mutateToProto(data *model.MutateReq) *pb.MutateReq {
+func mutateToProto(data *model.MutateRequest) *pb.MutateReq {
 	content := []*pb.Content{}
 	payload := []*pb.Payload{}
 
@@ -63,7 +63,7 @@ func mutateToProto(data *model.MutateReq) *pb.MutateReq {
 		content = append(content, c)
 	}
 
-	req := &pb.MutateReq{
+	req := &pb.MutateRequest{
 		Content: content,
 		Kind:    pb.ReqKind_CONFIGS,
 	}

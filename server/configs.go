@@ -55,7 +55,7 @@ func (s *LunarServer) getClusterConfigs() http.HandlerFunc {
 			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
 		}
 
-		sendJSONResponse(w, resp.Data)
+		sendJSONResponse(w, "OK")
 	}
 }
 
@@ -70,23 +70,23 @@ func (s *LunarServer) createConfigs() http.HandlerFunc {
 			return
 		}
 
-		data := model.MutateReq{}
+		data := model.MutateRequest{}
 		if err := json.Unmarshal(body, &data); err != nil {
 			sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 			return
 		}
 
-		var req pb.MutateReq
-		RequestToProto(data, &req)
-		//Call celestiall RPC who should put job to queue and return answer sometinhg like job accepted!
-		resp, err := s.client.Mutate(context.Background(), &req)
-		if err != nil {
-			sendErrorMessage(w, "Error from Celestial Service!", http.StatusBadRequest)
-		}
+		// var req pb.MutateRequest
+		// RequestToProto(data, &req)
+		// //Call celestiall RPC who should put job to queue and return answer sometinhg like job accepted!
+		// resp, err := s.client.Mutate(context.Background(), &req)
+		// if err != nil {
+		// 	sendErrorMessage(w, "Error from Celestial Service!", http.StatusBadRequest)
+		// }
 
-		if resp.Error == "NONE" {
-			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
-		}
+		// if resp.Error == "NONE" {
+		// 	sendErrorMessage(w, resp.Error, http.StatusBadRequest)
+		// }
 
 		//return answer
 		sendJSONResponse(w, map[string]string{"message": "success"})
