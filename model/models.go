@@ -1,39 +1,37 @@
 package model
 
-//key-value pars that represetn labels, keys, and configs
-// type KVS struct {
-// 	Kvs map[string]string `json:"kvs"`
-// }
+type MutateRequest struct {
+	Request   string   `json:"request"`
+	Kind      string   `json:"kind"`
+	Name      string   `json:"name"`
+	Timestamp int64    `json:"timestamp"`
+	Namespace string   `json:"namespace"`
+	Regions   []Region `json:"regions"`
+}
 
-// //This represents a single process on the node. And by process mean container
-// type Job struct {
-// 	ID      string `json:"labels"`
-// 	Name    string `json:"name"`
-// 	Labels  KVS    `json:"labels"`
-// 	Configs KVS    `json:"configs"`
-// 	Secrets KVS    `json:"secrets"`
-// }
+type Region struct {
+	ID       string    `json:"regionID"`
+	Clusters []Cluster `json:"cluster"`
+}
 
-// type Node struct {
-// 	ID      string `json:"labels"`
-// 	Name    string `json:"labels"`
-// 	Labels  KVS    `json:"labels"`
-// 	Configs KVS    `json:"configs"`
-// 	Secrets KVS    `json:"secrets"`
-// 	Jobs    []Job  `json:"jobs"`
-// }
+type Cluster struct {
+	ID       string    `json:"clusterID"`
+	Payload  []Payload `json:"payload"`
+	Strategy Strategy  `json:"strategy"`
+	Selector Selector  `json:"selector"`
+}
 
-// type Data struct {
-// 	UserID    string `json:"type"`
-// 	Type      string `json:"type"`
-// 	RegionID  string `json:"regionid"`
-// 	ClusterID string `json:"clusterid"`
-// 	NodeID    string `json:"nodeid"`
-// 	ProcessID string `json:"processid"`
-// 	Data      KVS    `json:"data"`
-// }
+type Payload struct {
+	Kind    string   `json:"kind"`
+	Content []string `json:"content"`
+}
 
-// type Resp struct {
-// 	Message string `json:"message"`
-// 	Code    int    `json:"code"`
-// }
+type Strategy struct {
+	Type string `json:"type"`
+	Kind string `json:"kind"`
+}
+
+type Selector struct {
+	Labels  map[string]string `json:"labels"`
+	Compare map[string]string `json:"compare"`
+}
