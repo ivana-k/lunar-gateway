@@ -7,13 +7,13 @@ import (
 	"net/http"
 )
 
-func (server *LunarServer) setupConfigs() {
-	configs := server.r.PathPrefix("/configs").Subrouter()
-	configs.HandleFunc("/list", server.listConfigs()).Methods("GET")
-	configs.HandleFunc("/mutate", server.mutateConfigs()).Methods("POST")
+func (server *LunarServer) setupActions() {
+	secrets := server.r.PathPrefix("/actions").Subrouter()
+	secrets.HandleFunc("/list", server.listSecrets()).Methods("GET")
+	secrets.HandleFunc("/mutate", server.mutateActions()).Methods("POST")
 }
 
-func (s *LunarServer) listConfigs() http.HandlerFunc {
+func (s *LunarServer) listActions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		keys := r.URL.Query()
 		fmt.Println(keys)
@@ -21,7 +21,7 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 	}
 }
 
-func (s *LunarServer) mutateConfigs() http.HandlerFunc {
+func (s *LunarServer) mutateActions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
 

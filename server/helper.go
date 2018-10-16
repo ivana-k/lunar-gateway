@@ -3,7 +3,7 @@ package server
 import (
 	"encoding/json"
 	pb "github.com/c12s/celestial/pb"
-	"github.com/c12s/lunar-gateway/model"
+	// "github.com/c12s/lunar-gateway/model"
 	"io"
 	"log"
 	"net/http"
@@ -32,44 +32,44 @@ func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
 	io.WriteString(w, msg)
 }
 
-func mutateToProto(data *model.MutateRequest) *pb.MutateReq {
-	content := []*pb.Content{}
-	payload := []*pb.Payload{}
+// func mutateToProto(data *model.MutateRequest) *pb.MutateReq {
+// 	content := []*pb.Content{}
+// 	payload := []*pb.Payload{}
 
-	for k, v := range data.Data {
-		p := &pb.Payload{
-			Name:   k,
-			Params: v,
-		}
-		payload = append(payload, p)
-	}
+// 	for k, v := range data.Data {
+// 		p := &pb.Payload{
+// 			Name:   k,
+// 			Params: v,
+// 		}
+// 		payload = append(payload, p)
+// 	}
 
-	for k, v := range data.Region {
-		labels := []*pb.KV{}
-		for lk, lv := range v.Selector {
-			label := &pb.KV{
-				Key:   lk,
-				Value: lv,
-			}
-			labels = append(labels, label)
-		}
+// 	for k, v := range data.Region {
+// 		labels := []*pb.KV{}
+// 		for lk, lv := range v.Selector {
+// 			label := &pb.KV{
+// 				Key:   lk,
+// 				Value: lv,
+// 			}
+// 			labels = append(labels, label)
+// 		}
 
-		c := &pb.Content{
-			Region:   k,
-			Clusters: v.Cluster,
-			Labels:   labels,
-			Data:     payload,
-		}
-		content = append(content, c)
-	}
+// 		c := &pb.Content{
+// 			Region:   k,
+// 			Clusters: v.Cluster,
+// 			Labels:   labels,
+// 			Data:     payload,
+// 		}
+// 		content = append(content, c)
+// 	}
 
-	req := &pb.MutateRequest{
-		Content: content,
-		Kind:    pb.ReqKind_CONFIGS,
-	}
+// 	req := &pb.MutateRequest{
+// 		Content: content,
+// 		Kind:    pb.ReqKind_CONFIGS,
+// 	}
 
-	return req
-}
+// 	return req
+// }
 
 func listToProto(data map[string]string) *pb.ListReq {
 	labels := []*pb.KV{}
@@ -87,13 +87,13 @@ func listToProto(data map[string]string) *pb.ListReq {
 	}
 }
 
-func RequestToProto(req interface{}, data ...interface{}) {
-	switch castReq := req.(type) {
-	case model.MutateReq:
-		data[0] = mutateToProto(&castReq)
-	case map[string]string:
-		data[0] = listToProto(castReq)
-	default:
-		data[0] = nil
-	}
-}
+// func RequestToProto(req interface{}, data ...interface{}) {
+// 	switch castReq := req.(type) {
+// 	case model.MutateReq:
+// 		data[0] = mutateToProto(&castReq)
+// 	case map[string]string:
+// 		data[0] = listToProto(castReq)
+// 	default:
+// 		data[0] = nil
+// 	}
+// }

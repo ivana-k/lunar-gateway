@@ -1,55 +1,38 @@
 package server
 
 import (
-	// "encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
 func (server *LunarServer) setupSecrets() {
 	secrets := server.r.PathPrefix("/secrets").Subrouter()
-
-	secrets.HandleFunc("/", server.getSecrets()).Methods("GET")
-	secrets.HandleFunc("/{regionid}", server.getRegionSecrets()).Methods("GET")
-	secrets.HandleFunc("/{regionid}/{clusterid}", server.getClusterSecrets()).Methods("GET")
-	secrets.HandleFunc("/new", server.createSecrets()).Methods("POST")
+	secrets.HandleFunc("/list", server.listSecrets()).Methods("GET")
+	secrets.HandleFunc("/mutate", server.mutateSecrets()).Methods("POST")
 }
 
-func (s *LunarServer) getSecrets() http.HandlerFunc {
+func (s *LunarServer) listSecrets() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Get Configs")
+		keys := r.URL.Query()
+		fmt.Println(keys)
+		sendJSONResponse(w, map[string]string{"status": "ok"})
 	}
 }
 
-func (s *LunarServer) getRegionSecrets() http.HandlerFunc {
+func (s *LunarServer) mutateSecrets() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		regionid := vars["regionid"]
+		//TODO: Check rights and so on...!!!
 
-		fmt.Fprintf(w, "Get Configs region:%s", regionid)
-	}
-}
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Failed to read the request body: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-func (s *LunarServer) getClusterSecrets() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		regionid := vars["regionid"]
-		clusterid := vars["clusterid"]
-
-		fmt.Fprintf(w, "Get Configs region:%s cluster:%s", regionid, clusterid)
-	}
-}
-
-func (s *LunarServer) createSecrets() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		//check rights
-
-		//put to queue
-
-		//return answer
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Create Configs")
+		fmt.Println(body)
+		sendJSONResponse(w, map[string]string{"message": "success"})
 	}
 }
