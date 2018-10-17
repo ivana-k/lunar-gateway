@@ -25,24 +25,16 @@ func (s *LunarServer) listActions() http.HandlerFunc {
 		//TODO: Check rights and so on...!!!
 		keys := r.URL.Query()
 		extras := []*cPb.KV{}
-		if val, ok := keys["from"]; ok {
-			extras = append(extras, &cPb.KV{Key: "from", Value: val[0]})
+		if val, ok := keys[user]; ok {
+			extras = append(extras, &cPb.KV{Key: user, Value: val[0]})
+		} else {
+			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
 		}
-
-		if val, ok := keys["to"]; ok {
-			extras = append(extras, &cPb.KV{Key: "to", Value: val[0]})
-		}
-
-		if val, ok := keys["top"]; ok {
-			extras = append(extras, &cPb.KV{Key: "top", Value: val[0]})
-		}
-
-		// if nothing is provided, well than whole history :(
 
 		var req *cPb.ListReq
 		RequestToProto(keys, req)
 		req.Kind = cPb.ReqKind_ACTIONS
-		req.Extras = extras
+		req.Extras = append(req.Extras, extras...)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

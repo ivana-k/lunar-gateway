@@ -24,10 +24,17 @@ func (s *LunarServer) listSecrets() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
 		keys := r.URL.Query()
+		extras := []*cPb.KV{}
+		if val, ok := keys[user]; ok {
+			extras = append(extras, &cPb.KV{Key: user, Value: val[0]})
+		} else {
+			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
+		}
 
 		var req *cPb.ListReq
 		RequestToProto(keys, req)
 		req.Kind = cPb.ReqKind_SECRETS
+		req.Extras = append(req.Extras, extras...)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
