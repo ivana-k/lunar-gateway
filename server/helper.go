@@ -2,9 +2,9 @@ package server
 
 import (
 	"encoding/json"
-	bPb "github.com/c12s/blackhole/pb"
-	cPb "github.com/c12s/celestial/pb"
 	"github.com/c12s/lunar-gateway/model"
+	bPb "github.com/c12s/scheme/blackhole"
+	cPb "github.com/c12s/scheme/celestial"
 	"io"
 	"log"
 	"net/http"

@@ -1,8 +1,8 @@
 package server
 
 import (
-	bPb "github.com/c12s/blackhole/pb"
-	cPb "github.com/c12s/celestial/pb"
+	bPb "github.com/c12s/scheme/blackhole"
+	cPb "github.com/c12s/scheme/celestial"
 	"google.golang.org/grpc"
 	"log"
 )
