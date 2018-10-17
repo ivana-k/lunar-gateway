@@ -3,16 +3,16 @@ package server
 import (
 	"context"
 	"encoding/json"
-	bPb "github.com/c12s/blackhole/pb"
-	cPb "github.com/c12s/celestial/pb"
 	"github.com/c12s/lunar-gateway/model"
+	bPb "github.com/c12s/scheme/blackhole"
+	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 )
 
-var aaq = [...]string{"labels", "compare", "from", "to", "top"}
+var aaq = [...]string{"labels", "compare", "from", "to", "top", "user"}
 
 func (server *LunarServer) setupActions() {
 	secrets := server.r.PathPrefix("/actions").Subrouter()
@@ -24,25 +24,17 @@ func (s *LunarServer) listActions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
 		keys := r.URL.Query()
-		extras := []*cPb.KV{}
-		if val, ok := keys["from"]; ok {
-			extras = append(extras, &cPb.KV{Key: "from", Value: val[0]})
+		extras := map[string]string{}
+		if val, ok := keys[user]; ok {
+			extras[user] = val[0]
+		} else {
+			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
 		}
-
-		if val, ok := keys["to"]; ok {
-			extras = append(extras, &cPb.KV{Key: "to", Value: val[0]})
-		}
-
-		if val, ok := keys["top"]; ok {
-			extras = append(extras, &cPb.KV{Key: "top", Value: val[0]})
-		}
-
-		// if nothing is provided, well than whole history :(
 
 		var req *cPb.ListReq
 		RequestToProto(keys, req)
 		req.Kind = cPb.ReqKind_ACTIONS
-		req.Extras = extras
+		merge(req.Extras, extras)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

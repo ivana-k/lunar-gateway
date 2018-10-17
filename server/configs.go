@@ -3,16 +3,16 @@ package server
 import (
 	"context"
 	"encoding/json"
-	bPb "github.com/c12s/blackhole/pb"
-	cPb "github.com/c12s/celestial/pb"
 	"github.com/c12s/lunar-gateway/model"
+	bPb "github.com/c12s/scheme/blackhole"
+	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 )
 
-var caq = [...]string{"labels", "compare"}
+var caq = [...]string{"labels", "compare", "user"}
 
 func (server *LunarServer) setupConfigs() {
 	configs := server.r.PathPrefix("/configs").Subrouter()
@@ -24,10 +24,17 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
 		keys := r.URL.Query()
+		extras := map[string]string{}
+		if val, ok := keys[user]; ok {
+			extras[user] = val[0]
+		} else {
+			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
+		}
 
 		var req *cPb.ListReq
 		RequestToProto(keys, req)
 		req.Kind = cPb.ReqKind_CONFIGS
+		merge(req.Extras, extras)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
