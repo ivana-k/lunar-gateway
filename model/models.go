@@ -1,12 +1,19 @@
 package model
 
 type MutateRequest struct {
-	Request   string   `json:"request"`
-	Kind      string   `json:"kind"`
-	Name      string   `json:"name"`
-	Timestamp int64    `json:"timestamp"`
-	Namespace string   `json:"namespace"`
-	Regions   []Region `json:"regions"`
+	Version string   `json:"version"`
+	Request string   `json:"request"`
+	Kind    string   `json:"kind"`
+	MTData  Metadata `json:"metadata"`
+	Regions []Region `json:"regions"`
+}
+
+type Metadata struct {
+	TaskName     string `json:"taskName"`
+	Timestamp    int64  `json:"timestamp"`
+	Namespace    string `json:"namespace"`
+	ForceNSQueue bool   `json:"forceNamespaceQueue"`
+	Queue        string `json:"queue"`
 }
 
 type Region struct {
@@ -22,8 +29,8 @@ type Cluster struct {
 }
 
 type Payload struct {
-	Kind    string   `json:"kind"`
-	Content []string `json:"content"`
+	Kind    string            `json:"kind"`
+	Content map[string]string `json:"content"`
 }
 
 type Strategy struct {
@@ -34,4 +41,12 @@ type Strategy struct {
 type Selector struct {
 	Labels  map[string]string `json:"labels"`
 	Compare map[string]string `json:"compare"`
+}
+
+type NMutateRequest struct {
+	Version string            `json:"version"`
+	Request string            `json:"request"`
+	Kind    string            `json:"kind"`
+	MTData  Metadata          `json:"metadata"`
+	Labels  map[string]string `json:"labels"`
 }

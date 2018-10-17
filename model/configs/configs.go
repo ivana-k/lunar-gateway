@@ -10,9 +10,9 @@ type LunarGateway struct {
 }
 
 type Config struct {
-	ConfVersion  string         `yaml:"version"`
-	ServerConf   ServerConfig   `yaml:"server"`
-	ServicesConf ServicesConfig `yaml:"services"`
+	ConfVersion  string            `yaml:"version"`
+	ServerConf   ServerConfig      `yaml:"server"`
+	ServicesConf map[string]string `yaml:"services"`
 }
 
 type ServerSecurity struct {
@@ -27,14 +27,6 @@ type ServerConfig struct {
 	Address        string `yaml:"address"`
 	DialTimeout    int    `yaml:"dialtimeout"`
 	RequestTimeout int    `yaml:"requesttimeout"`
-}
-
-type ServicesConfig struct {
-	Celestial Address `yaml:"celestial"`
-}
-
-type Address struct {
-	Addr string `yaml:"address"`
 }
 
 func ConfigFile(n ...string) (*Config, error) {
@@ -53,7 +45,6 @@ func ConfigFile(n ...string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &conf.Conf, nil
 }
 
@@ -71,19 +62,13 @@ func DefaultConfig() *Config {
 		RequestTimeout: 10,
 	}
 
-	celaddr := Address{
-		Addr: "localhost:8080",
-	}
-
-	conn := ServicesConfig{
-		Celestial: celaddr,
-	}
-
 	conf := Config{
-		ConfVersion:  "v1",
-		ServerConf:   server,
-		ServicesConf: conn,
+		ConfVersion: "v1",
+		ServerConf:  server,
+		ServicesConf: map[string]string{
+			"celestial": "localhost:8000",
+			"blackhole": "localhost:8001",
+		},
 	}
-
 	return &conf
 }

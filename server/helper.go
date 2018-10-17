@@ -2,11 +2,39 @@ package server
 
 import (
 	"encoding/json"
-	pb "github.com/c12s/celestial/pb"
-	// "github.com/c12s/lunar-gateway/model"
+	bPb "github.com/c12s/blackhole/pb"
+	cPb "github.com/c12s/celestial/pb"
+	"github.com/c12s/lunar-gateway/model"
 	"io"
 	"log"
 	"net/http"
+	"strings"
+)
+
+const (
+	BLACKHOLE = "blackhole"
+	CELESTIAL = "celestial"
+
+	all = "all"
+	any = "any"
+
+	file   = "file"
+	env    = "env"
+	action = "action"
+
+	at_once        = "AtOnce"
+	rolling_update = "RollingUpdate"
+
+	compare = "compare"
+	labels  = "labels"
+	sep     = ":"
+	kind    = "kind"
+
+	top  = "top"
+	from = "from"
+	to   = "to"
+
+	user = "user"
 )
 
 func sendJSONResponse(w http.ResponseWriter, data interface{}) {
@@ -32,68 +60,137 @@ func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
 	io.WriteString(w, msg)
 }
 
-// func mutateToProto(data *model.MutateRequest) *pb.MutateReq {
-// 	content := []*pb.Content{}
-// 	payload := []*pb.Payload{}
-
-// 	for k, v := range data.Data {
-// 		p := &pb.Payload{
-// 			Name:   k,
-// 			Params: v,
-// 		}
-// 		payload = append(payload, p)
-// 	}
-
-// 	for k, v := range data.Region {
-// 		labels := []*pb.KV{}
-// 		for lk, lv := range v.Selector {
-// 			label := &pb.KV{
-// 				Key:   lk,
-// 				Value: lv,
-// 			}
-// 			labels = append(labels, label)
-// 		}
-
-// 		c := &pb.Content{
-// 			Region:   k,
-// 			Clusters: v.Cluster,
-// 			Labels:   labels,
-// 			Data:     payload,
-// 		}
-// 		content = append(content, c)
-// 	}
-
-// 	req := &pb.MutateRequest{
-// 		Content: content,
-// 		Kind:    pb.ReqKind_CONFIGS,
-// 	}
-
-// 	return req
-// }
-
-func listToProto(data map[string]string) *pb.ListReq {
-	labels := []*pb.KV{}
-	for k, v := range data {
-		l := &pb.KV{
-			Key:   k,
-			Value: v,
-		}
-		labels = append(labels, l)
-	}
-
-	return &pb.ListReq{
-		Labels: labels,
-		Kind:   pb.ReqKind_CONFIGS,
+func cKind(kind string) bPb.CompareKind {
+	switch kind {
+	case all:
+		return bPb.CompareKind_ALL
+	case any:
+		return bPb.CompareKind_ANY
+	default:
+		return -1
 	}
 }
 
-// func RequestToProto(req interface{}, data ...interface{}) {
-// 	switch castReq := req.(type) {
-// 	case model.MutateReq:
-// 		data[0] = mutateToProto(&castReq)
-// 	case map[string]string:
-// 		data[0] = listToProto(castReq)
-// 	default:
-// 		data[0] = nil
-// 	}
-// }
+func pKind(kind string) bPb.PayloadKind {
+	switch kind {
+	case file:
+		return bPb.PayloadKind_FILE
+	case env:
+		return bPb.PayloadKind_ENV
+	case action:
+		return bPb.PayloadKind_ACTION
+	default:
+		return -1
+	}
+}
+
+func sKind(kind string) bPb.StrategyKind {
+	switch kind {
+	case at_once:
+		return bPb.StrategyKind_AT_ONCE
+	case rolling_update:
+		return bPb.StrategyKind_ROLLING_UPDATE
+	default:
+		return -1
+	}
+}
+
+func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
+	tasks := []*bPb.PutTask{}
+	for _, region := range data.Regions {
+		for _, cluster := range region.Clusters {
+			labels := []*bPb.KV{}
+			for k, v := range cluster.Selector.Labels {
+				labels = append(labels, &bPb.KV{Key: k, Value: v})
+			}
+
+			payload := []*bPb.Payload{}
+			for _, entry := range cluster.Payload {
+				values := []*bPb.KV{}
+				for k, v := range entry.Content {
+					values = append(values, &bPb.KV{Key: k, Value: v})
+				}
+				pld := &bPb.Payload{
+					Kind:  pKind(entry.Kind),
+					Value: values,
+				}
+				payload = append(payload, pld)
+			}
+
+			task := &bPb.PutTask{
+				RegionId:  region.ID,
+				ClusterId: cluster.ID,
+				Strategy: &bPb.Strategy{
+					Type: cluster.Strategy.Type,
+					Kind: sKind(cluster.Strategy.Kind),
+				},
+				Selector: &bPb.Selector{
+					Kind:   cKind(cluster.Selector.Compare[kind]),
+					Labels: labels,
+				},
+				Payload: payload,
+			}
+			tasks = append(tasks, task)
+		}
+	}
+
+	return &bPb.PutReq{
+		Version: data.Version,
+		UserId:  data.Request,
+		Mtdata: &bPb.Metadata{
+			TaskName:            data.MTData.TaskName,
+			Timestamp:           data.MTData.Timestamp,
+			Namespace:           data.MTData.Namespace,
+			ForceNamespaceQueue: data.MTData.ForceNSQueue,
+			Queue:               data.MTData.Queue,
+		},
+		Tasks: tasks,
+	}
+}
+
+func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
+	labels := []*bPb.KV{}
+	for k, v := range data.Labels {
+		labels = append(labels, &bPb.KV{Key: k, Value: v})
+	}
+
+	return &bPb.PutReq{
+		Version: data.Version,
+		UserId:  data.Request,
+		Mtdata: &bPb.Metadata{
+			TaskName:            data.MTData.TaskName,
+			Timestamp:           data.MTData.Timestamp,
+			Namespace:           data.MTData.Namespace,
+			ForceNamespaceQueue: data.MTData.ForceNSQueue,
+			Queue:               data.MTData.Queue,
+		},
+		Extras: labels,
+	}
+}
+
+func listToProto(data map[string][]string) *cPb.ListReq {
+	extras := []*cPb.KV{}
+	for k, v := range data {
+		if k == labels {
+			value := strings.Join(v, ",")
+			extras = append(extras, &cPb.KV{Key: labels, Value: value})
+		} else {
+			extras = append(extras, &cPb.KV{Key: compare, Value: v[0]})
+		}
+	}
+	return &cPb.ListReq{
+		Extras: extras,
+	}
+}
+
+func RequestToProto(req interface{}, data interface{}) {
+	switch castReq := req.(type) {
+	case model.MutateRequest:
+		data = mutateToProto(&castReq)
+	case model.NMutateRequest:
+	case map[string][]string:
+		data = listToProto(castReq)
+	default:
+		data = nil
+	}
+}
