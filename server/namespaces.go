@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	pb "github.com/c12s/blackhole/pb"
+	bPb "github.com/c12s/blackhole/pb"
+	cPb "github.com/c12s/celestial/pb"
 	"github.com/c12s/lunar-gateway/model"
 	"io/ioutil"
 	"log"
@@ -18,10 +18,31 @@ func (server *LunarServer) setupNamespaces() {
 	secrets.HandleFunc("/mutate", server.mutateNamespaces()).Methods("POST")
 }
 
+var naq = [...]string{"user"}
+
 func (s *LunarServer) listNamespaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//TODO: Check rights and so on...!!!
 		keys := r.URL.Query()
-		fmt.Println(keys)
+		extras := []*cPb.KV{}
+		if val, ok := keys["user"]; ok {
+			extras = append(extras, &cPb.KV{Key: "user", Value: val[0]})
+		}
+
+		var req *cPb.ListReq
+		RequestToProto(keys, req)
+		req.Kind = cPb.ReqKind_NAMESPACES
+		req.Extras = extras
+
+		client := NewCelestialClient(s.clients[CELESTIAL])
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		cancel()
+
+		resp, err := client.List(ctx, req)
+		if err != nil {
+			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
+		}
+
 		sendJSONResponse(w, map[string]string{"status": "ok"})
 	}
 }
@@ -43,8 +64,10 @@ func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 			return
 		}
 
-		var req *pb.PutReq
+		var req *bPb.PutReq
 		RequestToProto(data, req)
+		req.Kind = bPb.TaskKind_NAMESPACES
+
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		cancel()
