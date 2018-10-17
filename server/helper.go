@@ -37,6 +37,12 @@ const (
 	user = "user"
 )
 
+func merge(m1, m2 map[string]string) {
+	for k, v := range m2 {
+		m1[k] = v
+	}
+}
+
 func sendJSONResponse(w http.ResponseWriter, data interface{}) {
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -99,16 +105,16 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 	tasks := []*bPb.PutTask{}
 	for _, region := range data.Regions {
 		for _, cluster := range region.Clusters {
-			labels := []*bPb.KV{}
+			labels := map[string]string{}
 			for k, v := range cluster.Selector.Labels {
-				labels = append(labels, &bPb.KV{Key: k, Value: v})
+				labels[k] = v
 			}
 
 			payload := []*bPb.Payload{}
 			for _, entry := range cluster.Payload {
-				values := []*bPb.KV{}
+				values := map[string]string{}
 				for k, v := range entry.Content {
-					values = append(values, &bPb.KV{Key: k, Value: v})
+					values[k] = v
 				}
 				pld := &bPb.Payload{
 					Kind:  pKind(entry.Kind),
@@ -149,9 +155,9 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 }
 
 func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
-	labels := []*bPb.KV{}
+	labels := map[string]string{}
 	for k, v := range data.Labels {
-		labels = append(labels, &bPb.KV{Key: k, Value: v})
+		labels[k] = v
 	}
 
 	return &bPb.PutReq{
@@ -169,13 +175,13 @@ func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
 }
 
 func listToProto(data map[string][]string) *cPb.ListReq {
-	extras := []*cPb.KV{}
+	extras := map[string]string{}
 	for k, v := range data {
 		if k == labels {
 			value := strings.Join(v, ",")
-			extras = append(extras, &cPb.KV{Key: labels, Value: value})
+			extras[labels] = value
 		} else {
-			extras = append(extras, &cPb.KV{Key: compare, Value: v[0]})
+			extras[compare] = v[0]
 		}
 	}
 	return &cPb.ListReq{

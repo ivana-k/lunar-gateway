@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var caq = [...]string{"labels", "compare"}
+var caq = [...]string{"labels", "compare", "user"}
 
 func (server *LunarServer) setupConfigs() {
 	configs := server.r.PathPrefix("/configs").Subrouter()
@@ -24,9 +24,9 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
 		keys := r.URL.Query()
-		extras := []*cPb.KV{}
+		extras := map[string]string{}
 		if val, ok := keys[user]; ok {
-			extras = append(extras, &cPb.KV{Key: user, Value: val[0]})
+			extras[user] = val[0]
 		} else {
 			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
 		}
@@ -34,7 +34,7 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 		var req *cPb.ListReq
 		RequestToProto(keys, req)
 		req.Kind = cPb.ReqKind_CONFIGS
-		req.Extras = append(req.Extras, extras...)
+		merge(req.Extras, extras)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
