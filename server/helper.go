@@ -29,6 +29,12 @@ const (
 	labels  = "labels"
 	sep     = ":"
 	kind    = "kind"
+
+	top  = "top"
+	from = "from"
+	to   = "to"
+
+	user = "user"
 )
 
 func sendJSONResponse(w http.ResponseWriter, data interface{}) {
@@ -163,19 +169,17 @@ func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
 }
 
 func listToProto(data map[string][]string) *cPb.ListReq {
-	labels := []*cPb.KV{}
-	for _, slabels := range data[labels] {
-		pair := strings.Split(slabels, sep)
-		l := &cPb.KV{
-			Key:   pair[0],
-			Value: pair[1],
+	extras := []*cPb.KV{}
+	for k, v := range data {
+		if k == labels {
+			value := strings.Join(v, ",")
+			extras = append(extras, &cPb.KV{Key: labels, Value: value})
+		} else {
+			extras = append(extras, &cPb.KV{Key: compare, Value: v[0]})
 		}
-		labels = append(labels, l)
 	}
-
 	return &cPb.ListReq{
-		Labels:  labels,
-		Compare: data[compare][0],
+		Extras: extras,
 	}
 }
 
