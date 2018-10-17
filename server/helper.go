@@ -28,6 +28,7 @@ const (
 	compare = "compare"
 	labels  = "labels"
 	sep     = ":"
+	kind    = "kind"
 )
 
 func sendJSONResponse(w http.ResponseWriter, data interface{}) {
@@ -103,7 +104,6 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 				for k, v := range entry.Content {
 					values = append(values, &bPb.KV{Key: k, Value: v})
 				}
-
 				pld := &bPb.Payload{
 					Kind:  pKind(entry.Kind),
 					Value: values,
@@ -119,7 +119,7 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 					Kind: sKind(cluster.Strategy.Kind),
 				},
 				Selector: &bPb.Selector{
-					Kind:   cKind(cluster.Selector.Compare["kind"]),
+					Kind:   cKind(cluster.Selector.Compare[kind]),
 					Labels: labels,
 				},
 				Payload: payload,
