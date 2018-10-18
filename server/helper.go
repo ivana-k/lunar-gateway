@@ -194,6 +194,7 @@ func RequestToProto(req interface{}, data interface{}) {
 	case model.MutateRequest:
 		data = mutateToProto(&castReq)
 	case model.NMutateRequest:
+		data = mutateNSToProto(&castReq)
 	case map[string][]string:
 		data = listToProto(castReq)
 	default:
