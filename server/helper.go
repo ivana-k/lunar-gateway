@@ -179,6 +179,7 @@ func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
 	return &bPb.PutReq{
 		Version: data.Version,
 		UserId:  data.Request,
+		Kind:    tKind(data.Kind),
 		Mtdata: &bPb.Metadata{
 			TaskName:            data.MTData.TaskName,
 			Timestamp:           data.MTData.Timestamp,

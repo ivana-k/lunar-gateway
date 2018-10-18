@@ -37,7 +37,7 @@ func (s *LunarServer) listActions() http.HandlerFunc {
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cancel()
+		defer cancel()
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
