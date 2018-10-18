@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/c12s/lunar-gateway/model/configs"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -44,5 +45,6 @@ func (server *LunarServer) setupEndpoints() {
 }
 
 func (server *LunarServer) Start() {
+	fmt.Println("LunarServer Started")
 	http.ListenAndServe(server.address, handlers.LoggingHandler(os.Stdout, server.r))
 }

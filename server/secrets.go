@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/c12s/lunar-gateway/model"
-	bPb "github.com/c12s/scheme/blackhole"
 	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
 	"log"
@@ -34,7 +33,7 @@ func (s *LunarServer) listSecrets() http.HandlerFunc {
 		var req *cPb.ListReq
 		RequestToProto(keys, req)
 		req.Kind = cPb.ReqKind_SECRETS
-		merge(req.Extras, extras)
+		// merge(req.Extras, extras)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -60,16 +59,13 @@ func (s *LunarServer) mutateSecrets() http.HandlerFunc {
 			return
 		}
 
-		data := model.MutateRequest{}
-		if err := json.Unmarshal(body, &data); err != nil {
+		data := &model.MutateRequest{}
+		if err := json.Unmarshal(body, data); err != nil {
 			sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 			return
 		}
 
-		var req *bPb.PutReq
-		RequestToProto(data, req)
-		req.Kind = bPb.TaskKind_SECRETS
-
+		req := mutateToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		cancel()

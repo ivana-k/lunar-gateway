@@ -10,4 +10,4 @@ lunar-gateway:
     requesttimeout: 10
   services:
       celestial: localhost:8000
-      blackhole: localhost:8001
+      blackhole: localhost:8081

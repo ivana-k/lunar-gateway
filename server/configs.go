@@ -3,8 +3,9 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/c12s/lunar-gateway/model"
-	bPb "github.com/c12s/scheme/blackhole"
+	// bPb "github.com/c12s/scheme/blackhole"
 	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
 	"log"
@@ -34,7 +35,7 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 		var req *cPb.ListReq
 		RequestToProto(keys, req)
 		req.Kind = cPb.ReqKind_CONFIGS
-		merge(req.Extras, extras)
+		// merge(req.Extras, extras)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -59,25 +60,22 @@ func (s *LunarServer) mutateConfigs() http.HandlerFunc {
 			return
 		}
 
-		data := model.MutateRequest{}
-		if err := json.Unmarshal(body, &data); err != nil {
+		data := &model.MutateRequest{}
+		if err := json.Unmarshal(body, data); err != nil {
 			sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 			return
 		}
 
-		var req *bPb.PutReq
-		RequestToProto(data, req)
-		req.Kind = bPb.TaskKind_CONFIGS
-
+		req := mutateToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 150*time.Second)
+		defer cancel()
 
 		resp, err := client.Put(ctx, req)
 		if err != nil {
+			fmt.Println(err)
 			sendErrorMessage(w, "Error from Celestial Service!", http.StatusBadRequest)
 		}
-
 		sendJSONResponse(w, map[string]string{"message": resp.Msg})
 	}
 }

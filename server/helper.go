@@ -101,6 +101,21 @@ func sKind(kind string) bPb.StrategyKind {
 	}
 }
 
+func tKind(kind string) bPb.TaskKind {
+	switch kind {
+	case "Configs":
+		return bPb.TaskKind_CONFIGS
+	case "Secrets":
+		return bPb.TaskKind_SECRETS
+	case "Actions":
+		return bPb.TaskKind_ACTIONS
+	case "Namespaces":
+		return bPb.TaskKind_NAMESPACES
+	default:
+		return -1
+	}
+}
+
 func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 	tasks := []*bPb.PutTask{}
 	for _, region := range data.Regions {
@@ -127,8 +142,8 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 				RegionId:  region.ID,
 				ClusterId: cluster.ID,
 				Strategy: &bPb.Strategy{
-					Type: cluster.Strategy.Type,
-					Kind: sKind(cluster.Strategy.Kind),
+					Type: sKind(cluster.Strategy.Type),
+					Kind: cluster.Strategy.Kind,
 				},
 				Selector: &bPb.Selector{
 					Kind:   cKind(cluster.Selector.Compare[kind]),
@@ -143,6 +158,7 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 	return &bPb.PutReq{
 		Version: data.Version,
 		UserId:  data.Request,
+		Kind:    tKind(data.Kind),
 		Mtdata: &bPb.Metadata{
 			TaskName:            data.MTData.TaskName,
 			Timestamp:           data.MTData.Timestamp,
