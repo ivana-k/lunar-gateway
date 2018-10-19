@@ -171,10 +171,14 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 }
 
 func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
-	labels := map[string]string{}
+	extras := map[string]string{}
 	for k, v := range data.Labels {
-		labels[k] = v
+		extras[k] = v
 	}
+
+	// Add namespace name to the extras
+	nkey := strings.Join([]string{data.MTData.Namespace, "name"}, "__")
+	extras[nkey] = data.Name
 
 	return &bPb.PutReq{
 		Version: data.Version,
