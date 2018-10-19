@@ -191,7 +191,7 @@ func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
 			ForceNamespaceQueue: data.MTData.ForceNSQueue,
 			Queue:               data.MTData.Queue,
 		},
-		Extras: labels,
+		Extras: extras,
 	}
 }
 
