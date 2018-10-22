@@ -38,7 +38,7 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 		// merge(req.Extras, extras)
 
 		client := NewCelestialClient(s.clients[CELESTIAL])
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancel()
 
 		resp, err := client.List(ctx, req)
@@ -68,7 +68,7 @@ func (s *LunarServer) mutateConfigs() http.HandlerFunc {
 
 		req := mutateToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
-		ctx, cancel := context.WithTimeout(context.Background(), 150*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Put(ctx, req)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/c12s/lunar-gateway/model"
-	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,27 +16,21 @@ func (server *LunarServer) setupNamespaces() {
 	secrets.HandleFunc("/mutate", server.mutateNamespaces()).Methods("POST")
 }
 
-var naq = [...]string{"user"}
+var naq = [...]string{"user", "labels", "compare", "name"}
 
 func (s *LunarServer) listNamespaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
+
 		keys := r.URL.Query()
-		extras := map[string]string{}
-		if val, ok := keys[user]; ok {
-			extras[user] = val[0]
-		} else {
+		if _, ok := keys[user]; !ok {
 			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
 		}
 
-		var req *cPb.ListReq
-		RequestToProto(keys, req)
-		req.Kind = cPb.ReqKind_NAMESPACES
-		// merge(req.Extras, extras)
-
+		req := listToProto(keys)
 		client := NewCelestialClient(s.clients[CELESTIAL])
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
@@ -67,7 +60,7 @@ func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 
 		req := mutateNSToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Put(ctx, req)

@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -34,7 +35,9 @@ const (
 	from = "from"
 	to   = "to"
 
-	user = "user"
+	user       = "user"
+	ns_key     = "namespace"
+	labels_key = "labels"
 )
 
 func merge(m1, m2 map[string]string) {
@@ -171,15 +174,20 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 }
 
 func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
+	tasks := []*bPb.PutTask{}
 	extras := map[string]string{}
+	labels := []string{}
 	for k, v := range data.Labels {
-		extras[k] = v
+		pair := strings.Join([]string{k, v}, ":")
+		labels = append(labels, pair)
 	}
 
-	// Add namespace name to the extras
-	nkey := strings.Join([]string{data.MTData.Namespace, "name"}, "__")
-	extras[nkey] = data.Name
+	// Add namespace labels
+	sort.Strings(labels)
+	extras[labels_key] = strings.Join(labels, ",")
 
+	// Add namespace name to the extras
+	extras[ns_key] = data.Name
 	return &bPb.PutReq{
 		Version: data.Version,
 		UserId:  data.Request,
@@ -199,10 +207,10 @@ func listToProto(data map[string][]string) *cPb.ListReq {
 	extras := map[string]string{}
 	for k, v := range data {
 		if k == labels {
-			value := strings.Join(v, ",")
-			extras[labels] = value
+			sort.Strings(v)
+			extras[k] = strings.Join(v, ",")
 		} else {
-			extras[compare] = v[0]
+			extras[k] = v[0]
 		}
 	}
 	return &cPb.ListReq{
