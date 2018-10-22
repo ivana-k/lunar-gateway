@@ -68,7 +68,7 @@ func (s *LunarServer) mutateSecrets() http.HandlerFunc {
 		req := mutateToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cancel()
+		defer cancel()
 
 		resp, err := client.Put(ctx, req)
 		if err != nil {
