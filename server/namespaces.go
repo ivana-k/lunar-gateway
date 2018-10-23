@@ -37,6 +37,11 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
 		}
 
+		if resp.Data == nil {
+			sendJSONResponse(w, "No results")
+			return
+		}
+
 		data, rerr := json.Marshal(&resp.Data)
 		if rerr != nil {
 			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
