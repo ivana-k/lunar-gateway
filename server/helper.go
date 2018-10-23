@@ -218,6 +218,24 @@ func listToProto(data map[string][]string) *cPb.ListReq {
 	}
 }
 
+func protoToNSListResp(resp *cPb.ListResp) *model.NSResponse {
+	rez := &model.NSResponse{Result: []model.Data{}}
+	if resp.Data == nil {
+		return rez
+	}
+
+	for _, lresp := range resp.Data {
+		data := model.Data{
+			Age:       lresp.Data["age"],
+			Name:      lresp.Data["name"],
+			Namespace: lresp.Data["namespace"],
+			Labels:    lresp.Data["labels"],
+		}
+		rez.Result = append(rez.Result, data)
+	}
+	return rez
+}
+
 func RequestToProto(req interface{}, data interface{}) {
 	switch castReq := req.(type) {
 	case model.MutateRequest:

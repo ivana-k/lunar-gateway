@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/c12s/lunar-gateway/model"
 	"io/ioutil"
 	"log"
@@ -25,6 +26,7 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 		keys := r.URL.Query()
 		if _, ok := keys[user]; !ok {
 			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
+			return
 		}
 
 		req := listToProto(keys)
@@ -34,17 +36,16 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
-			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
-		}
-
-		if resp.Data == nil {
-			sendJSONResponse(w, "No results")
+			fmt.Println(err.Error())
+			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		data, rerr := json.Marshal(&resp.Data)
+		rresp := protoToNSListResp(resp)
+		data, rerr := json.Marshal(rresp)
 		if rerr != nil {
 			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
+			return
 		}
 		sendJSONResponse(w, string(data))
 	}
