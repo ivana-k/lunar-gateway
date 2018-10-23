@@ -174,7 +174,6 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 }
 
 func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
-	tasks := []*bPb.PutTask{}
 	extras := map[string]string{}
 	labels := []string{}
 	for k, v := range data.Labels {
@@ -215,6 +214,7 @@ func listToProto(data map[string][]string) *cPb.ListReq {
 	}
 	return &cPb.ListReq{
 		Extras: extras,
+		Kind:   cPb.ReqKind_NAMESPACES,
 	}
 }
 

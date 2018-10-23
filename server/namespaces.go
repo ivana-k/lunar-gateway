@@ -37,7 +37,11 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
 		}
 
-		sendJSONResponse(w, map[string]string{"status": "ok"})
+		data, rerr := json.Marshal(&resp.Data)
+		if rerr != nil {
+			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
+		}
+		sendJSONResponse(w, string(data))
 	}
 }
 
