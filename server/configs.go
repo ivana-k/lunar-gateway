@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/c12s/lunar-gateway/model"
+	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -28,7 +29,7 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 			return
 		}
 
-		req := listToProto(keys)
+		req := listToProto(keys, cPb.ReqKind_CONFIGS)
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -39,7 +40,7 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 			return
 		}
 
-		rresp := protoToNSListResp(resp)
+		rresp := protoToConfigListResp(resp)
 		data, rerr := json.Marshal(rresp)
 		if rerr != nil {
 			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)

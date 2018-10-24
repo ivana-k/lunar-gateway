@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/c12s/lunar-gateway/model"
+	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,14 +29,13 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 			return
 		}
 
-		req := listToProto(keys)
+		req := listToProto(keys, cPb.ReqKind_NAMESPACES)
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
-			fmt.Println(err.Error())
 			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}

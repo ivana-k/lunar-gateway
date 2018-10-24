@@ -203,7 +203,7 @@ func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
 	}
 }
 
-func listToProto(data map[string][]string) *cPb.ListReq {
+func listToProto(data map[string][]string, kind cPb.ReqKind) *cPb.ListReq {
 	extras := map[string]string{}
 	for k, v := range data {
 		if k == labels {
@@ -215,22 +215,40 @@ func listToProto(data map[string][]string) *cPb.ListReq {
 	}
 	return &cPb.ListReq{
 		Extras: extras,
-		Kind:   cPb.ReqKind_NAMESPACES,
+		Kind:   kind,
 	}
 }
 
 func protoToNSListResp(resp *cPb.ListResp) *model.NSResponse {
-	rez := &model.NSResponse{Result: []model.Data{}}
+	rez := &model.NSResponse{Result: []model.NSData{}}
 	if resp.Data == nil {
 		return rez
 	}
 
 	for _, lresp := range resp.Data {
-		data := model.Data{
+		data := model.NSData{
 			Age:       lresp.Data["age"],
 			Name:      lresp.Data["name"],
 			Namespace: lresp.Data["namespace"],
 			Labels:    lresp.Data["labels"],
+		}
+		rez.Result = append(rez.Result, data)
+	}
+	return rez
+}
+
+func protoToConfigListResp(resp *cPb.ListResp) *model.ConfigResponse {
+	rez := &model.ConfigResponse{Result: []model.ConfigData{}}
+	if resp.Data == nil {
+		return rez
+	}
+
+	for _, lresp := range resp.Data {
+		data := model.ConfigData{
+			RegionId:  lresp.Data["regionid"],
+			ClusterId: lresp.Data["clusterid"],
+			NodeId:    lresp.Data["nodeid"],
+			Configs:   lresp.Data["configs"],
 		}
 		rez.Result = append(rez.Result, data)
 	}
@@ -244,7 +262,7 @@ func RequestToProto(req interface{}, data interface{}) {
 	case model.NMutateRequest:
 		data = mutateNSToProto(&castReq)
 	case map[string][]string:
-		data = listToProto(castReq)
+		data = nil
 	default:
 		data = nil
 	}
