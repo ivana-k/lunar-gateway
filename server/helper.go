@@ -134,6 +134,7 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 				for k, v := range entry.Content {
 					values[k] = v
 				}
+
 				pld := &bPb.Payload{
 					Kind:  pKind(entry.Kind),
 					Value: values,
