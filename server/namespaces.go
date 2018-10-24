@@ -76,6 +76,7 @@ func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 		resp, err := client.Put(ctx, req)
 		if err != nil {
 			sendErrorMessage(w, "Error from Celestial Service!", http.StatusBadRequest)
+			return
 		}
 
 		sendJSONResponse(w, map[string]string{"message": resp.Msg})
