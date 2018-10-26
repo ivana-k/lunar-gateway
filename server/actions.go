@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/c12s/lunar-gateway/model"
 	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
@@ -11,38 +12,37 @@ import (
 	"time"
 )
 
-var aaq = [...]string{"labels", "compare", "from", "to", "top", "user"}
-
 func (server *LunarServer) setupActions() {
 	secrets := server.r.PathPrefix("/actions").Subrouter()
-	secrets.HandleFunc("/list", server.listSecrets()).Methods("GET")
+	secrets.HandleFunc("/list", server.listActions()).Methods("GET")
 	secrets.HandleFunc("/mutate", server.mutateActions()).Methods("POST")
 }
+
+var aaq = [...]string{"labels", "compare", "from", "to", "head", "tail", "user"}
 
 func (s *LunarServer) listActions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
+
 		keys := r.URL.Query()
-		extras := map[string]string{}
-		if val, ok := keys[user]; ok {
-			extras[user] = val[0]
-		} else {
+		if _, ok := keys[user]; !ok {
 			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
+			return
 		}
 
-		var req *cPb.ListReq
-		RequestToProto(keys, req)
-		req.Kind = cPb.ReqKind_ACTIONS
-		// merge(req.Extras, extras)
-
+		req := listToProto(keys, cPb.ReqKind_ACTIONS)
 		client := NewCelestialClient(s.clients[CELESTIAL])
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
-			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
+			fmt.Println(err)
+			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
+			return
 		}
+
+		fmt.Println(resp)
 
 		sendJSONResponse(w, map[string]string{"status": "ok"})
 	}
@@ -67,14 +67,14 @@ func (s *LunarServer) mutateActions() http.HandlerFunc {
 
 		req := mutateToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
 		resp, err := client.Put(ctx, req)
 		if err != nil {
 			sendErrorMessage(w, "Error from Celestial Service!", http.StatusBadRequest)
+			return
 		}
-
 		sendJSONResponse(w, map[string]string{"message": resp.Msg})
 	}
 }

@@ -138,6 +138,7 @@ func mutateToProto(data *model.MutateRequest) *bPb.PutReq {
 				pld := &bPb.Payload{
 					Kind:  pKind(entry.Kind),
 					Value: values,
+					Index: entry.Index,
 				}
 				payload = append(payload, pld)
 			}
