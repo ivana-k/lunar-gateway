@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/c12s/lunar-gateway/model"
 	cPb "github.com/c12s/scheme/celestial"
 	"io/ioutil"
@@ -13,7 +14,7 @@ import (
 
 func (server *LunarServer) setupActions() {
 	secrets := server.r.PathPrefix("/actions").Subrouter()
-	secrets.HandleFunc("/list", server.listSecrets()).Methods("GET")
+	secrets.HandleFunc("/list", server.listActions()).Methods("GET")
 	secrets.HandleFunc("/mutate", server.mutateActions()).Methods("POST")
 }
 
@@ -24,7 +25,7 @@ func (s *LunarServer) listActions() http.HandlerFunc {
 		//TODO: Check rights and so on...!!!
 
 		keys := r.URL.Query()
-		if _, ok := keys[user]; ok {
+		if _, ok := keys[user]; !ok {
 			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
 			return
 		}
@@ -36,9 +37,12 @@ func (s *LunarServer) listActions() http.HandlerFunc {
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
-			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
+			fmt.Println(err)
+			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		fmt.Println(resp)
 
 		sendJSONResponse(w, map[string]string{"status": "ok"})
 	}
