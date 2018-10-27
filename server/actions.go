@@ -42,9 +42,13 @@ func (s *LunarServer) listActions() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println(resp)
-
-		sendJSONResponse(w, map[string]string{"status": "ok"})
+		rresp := protoToActionsListResp(resp)
+		data, rerr := json.Marshal(rresp)
+		if rerr != nil {
+			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
+			return
+		}
+		sendJSONResponse(w, string(data))
 	}
 }
 

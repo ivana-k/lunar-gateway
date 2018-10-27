@@ -256,6 +256,31 @@ func protoToConfigListResp(resp *cPb.ListResp) *model.ConfigResponse {
 	return rez
 }
 
+func protoToActionsListResp(resp *cPb.ListResp) *model.ActionsResponse {
+	rez := &model.ActionsResponse{Result: []model.ActionsData{}}
+	if resp.Data == nil {
+		return rez
+	}
+
+	actions := map[string]string{}
+	for _, lresp := range resp.Data {
+		for k, v := range lresp.Data {
+			if strings.HasPrefix(k, "timestamp_") {
+				actions[k] = v
+			}
+		}
+
+		data := model.ActionsData{
+			RegionId:  lresp.Data["regionid"],
+			ClusterId: lresp.Data["clusterid"],
+			NodeId:    lresp.Data["nodeid"],
+			Actions:   actions,
+		}
+		rez.Result = append(rez.Result, data)
+	}
+	return rez
+}
+
 func RequestToProto(req interface{}, data interface{}) {
 	switch castReq := req.(type) {
 	case model.MutateRequest:
