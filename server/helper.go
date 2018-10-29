@@ -238,6 +238,24 @@ func protoToNSListResp(resp *cPb.ListResp) *model.NSResponse {
 	return rez
 }
 
+func protoToSecretsListResp(resp *cPb.ListResp) *model.SecretsResponse {
+	rez := &model.SecretsResponse{Result: []model.SecretsData{}}
+	if resp.Data == nil {
+		return rez
+	}
+
+	for _, lresp := range resp.Data {
+		data := model.SecretsData{
+			RegionId:  lresp.Data["regionid"],
+			ClusterId: lresp.Data["clusterid"],
+			NodeId:    lresp.Data["nodeid"],
+			Secrets:   lresp.Data["secrets"],
+		}
+		rez.Result = append(rez.Result, data)
+	}
+	return rez
+}
+
 func protoToConfigListResp(resp *cPb.ListResp) *model.ConfigResponse {
 	rez := &model.ConfigResponse{Result: []model.ConfigData{}}
 	if resp.Data == nil {
