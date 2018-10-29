@@ -11,40 +11,42 @@ import (
 	"time"
 )
 
-var saq = [...]string{"labels", "compare", "user"}
-
 func (server *LunarServer) setupSecrets() {
 	secrets := server.r.PathPrefix("/secrets").Subrouter()
 	secrets.HandleFunc("/list", server.listSecrets()).Methods("GET")
 	secrets.HandleFunc("/mutate", server.mutateSecrets()).Methods("POST")
 }
 
+var saq = [...]string{"labels", "compare", "user"}
+
 func (s *LunarServer) listSecrets() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
+
 		keys := r.URL.Query()
-		extras := map[string]string{}
-		if val, ok := keys[user]; ok {
-			extras[user] = val[0]
-		} else {
+		if _, ok := keys[user]; !ok {
 			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
+			return
 		}
 
-		var req *cPb.ListReq
-		RequestToProto(keys, req)
-		req.Kind = cPb.ReqKind_SECRETS
-		// merge(req.Extras, extras)
-
+		req := listToProto(keys, cPb.ReqKind_SECRETS)
 		client := NewCelestialClient(s.clients[CELESTIAL])
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
-			sendErrorMessage(w, resp.Error, http.StatusBadRequest)
+			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
-		sendJSONResponse(w, map[string]string{"status": "ok"})
+		rresp := protoToSecretsListResp(resp)
+		data, rerr := json.Marshal(rresp)
+		if rerr != nil {
+			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
+			return
+		}
+		sendJSONResponse(w, string(data))
 	}
 }
 
