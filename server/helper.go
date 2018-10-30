@@ -299,15 +299,15 @@ func protoToActionsListResp(resp *cPb.ListResp) *model.ActionsResponse {
 	return rez
 }
 
-func RequestToProto(req interface{}, data interface{}) {
-	switch castReq := req.(type) {
-	case model.MutateRequest:
-		data = mutateToProto(&castReq)
-	case model.NMutateRequest:
-		data = mutateNSToProto(&castReq)
-	case map[string][]string:
-		data = nil
-	default:
-		data = nil
-	}
-}
+// func RequestToProto(req interface{}, data interface{}) {
+// 	switch castReq := req.(type) {
+// 	case model.MutateRequest:
+// 		data = mutateToProto(&castReq)
+// 	case model.NMutateRequest:
+// 		data = mutateNSToProto(&castReq)
+// 	case map[string][]string:
+// 		data = nil
+// 	default:
+// 		data = nil
+// 	}
+// }

@@ -54,6 +54,12 @@ func (s *LunarServer) mutateSecrets() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//TODO: Check rights and so on...!!!
 
+		keys := r.URL.Query()
+		if _, ok := keys[user]; !ok {
+			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
+			return
+		}
+
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("Failed to read the request body: %v", err)
