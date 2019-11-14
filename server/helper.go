@@ -12,35 +12,6 @@ import (
 	"strings"
 )
 
-const (
-	BLACKHOLE = "blackhole"
-	CELESTIAL = "celestial"
-
-	all = "all"
-	any = "any"
-
-	file   = "file"
-	env    = "env"
-	action = "action"
-
-	at_once        = "AtOnce"
-	rolling_update = "RollingUpdate"
-	canary         = "Canary"
-
-	compare = "compare"
-	labels  = "labels"
-	sep     = ":"
-	kind    = "kind"
-
-	top  = "top"
-	from = "from"
-	to   = "to"
-
-	user       = "user"
-	ns_key     = "namespace"
-	labels_key = "labels"
-)
-
 func merge(m1, m2 map[string]string) {
 	for k, v := range m2 {
 		m1[k] = v
@@ -109,13 +80,13 @@ func sKind(kind string) bPb.StrategyKind {
 
 func tKind(kind string) bPb.TaskKind {
 	switch kind {
-	case "Configs":
+	case Configs:
 		return bPb.TaskKind_CONFIGS
-	case "Secrets":
+	case Secrets:
 		return bPb.TaskKind_SECRETS
-	case "Actions":
+	case Actions:
 		return bPb.TaskKind_ACTIONS
-	case "Namespaces":
+	case Namespaces:
 		return bPb.TaskKind_NAMESPACES
 	default:
 		return -1
