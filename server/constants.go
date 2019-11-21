@@ -3,6 +3,7 @@ package server
 const (
 	BLACKHOLE = "blackhole"
 	CELESTIAL = "celestial"
+	APOLLO    = "apollo"
 
 	all = "all"
 	any = "any"

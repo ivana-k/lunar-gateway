@@ -1,6 +1,7 @@
 package server
 
 import (
+	aPb "github.com/c12s/scheme/apollo"
 	bPb "github.com/c12s/scheme/blackhole"
 	cPb "github.com/c12s/scheme/celestial"
 	"google.golang.org/grpc"
@@ -23,4 +24,13 @@ func NewBlackHoleClient(address string) bPb.BlackHoleServiceClient {
 	}
 
 	return bPb.NewBlackHoleServiceClient(conn)
+}
+
+func NewApolloClient(address string) aPb.ApolloServiceClient {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to start gRPC connection to apollo service: %v", err)
+	}
+
+	return aPb.NewApolloServiceClient(conn)
 }
