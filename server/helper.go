@@ -35,6 +35,27 @@ func sendJSONResponse(w http.ResponseWriter, data interface{}) {
 	}
 }
 
+func sendJSONResponseWithHeader(w http.ResponseWriter, data interface{}, headers map[string]string) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		log.Printf("Failed to encode a JSON response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	for k, v := range headers {
+		w.Header().Set(k, v)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(body)
+	if err != nil {
+		log.Printf("Failed to write the response body: %v", err)
+		return
+	}
+}
+
 func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(status)

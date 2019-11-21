@@ -42,6 +42,7 @@ func (server *LunarServer) setupEndpoints() {
 	server.setupSecrets()
 	server.setupActions()
 	server.setupNamespaces()
+	server.setupAuth()
 }
 
 func (server *LunarServer) Start() {
