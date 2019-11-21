@@ -43,7 +43,7 @@ func sendJSONResponseWithHeader(w http.ResponseWriter, data interface{}, headers
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	for k, v := range headers {
 		w.Header().Set(k, v)
 	}
