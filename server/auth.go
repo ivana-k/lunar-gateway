@@ -14,7 +14,7 @@ import (
 func (server *LunarServer) setupAuth() {
 	auth := server.r.PathPrefix("/auth").Subrouter()
 	auth.HandleFunc("/login", server.login()).Methods("POST")
-	auth.HandleFunc("/logout", server.logout()).Methods("GET")
+	auth.HandleFunc("/logout", auth(server.logout())).Methods("GET")
 }
 
 func (server *LunarServer) login() http.HandlerFunc {
