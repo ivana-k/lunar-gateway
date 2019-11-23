@@ -43,8 +43,7 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 			Data: map[string]string{
 				"intent": spl[4],
 				"kind":   spl[3],
-				"user":   r.URL.Query()["user"][0],
-				"token":  r.Header["Authorization"][0],
+				"token":  r.Header["Authentication"][0],
 			},
 			Extras: extras,
 		}
@@ -97,7 +96,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 				"intent":       spl[4],
 				"kind":         spl[3],
 				"user":         r.URL.Query()["user"][0],
-				"token":        r.Header["Authorization"][0],
+				"token":        r.Header["Authentication"][0],
 				"namespace":    data.MTData.Namespace,
 				"queue":        data.MTData.Queue,
 				"forceNSQueue": strconv.FormatBool(data.MTData.ForceNSQueue),
@@ -106,7 +105,6 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		} else {
 			data := &model.NMutateRequest{}
 			if err := json.Unmarshal(body, data); err != nil {
-				log.Println(err)
 				sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 				return
 			}
@@ -129,7 +127,6 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 
 		resp, err := client.Auth(ctx, req)
 		if err != nil {
-			log.Println(err)
 			sendErrorMessage(w, "Error from Apollo Service!", http.StatusBadRequest)
 			return
 		}

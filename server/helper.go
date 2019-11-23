@@ -5,7 +5,7 @@ import (
 	"github.com/c12s/lunar-gateway/model"
 	bPb "github.com/c12s/scheme/blackhole"
 	cPb "github.com/c12s/scheme/celestial"
-	"io"
+	// "io"
 	"log"
 	"net/http"
 	"sort"
@@ -57,9 +57,20 @@ func sendJSONResponseWithHeader(w http.ResponseWriter, data interface{}, headers
 }
 
 func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
+	body, err := json.Marshal(map[string]string{"message": msg})
+	if err != nil {
+		log.Printf("Failed to encode a JSON response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(status)
-	io.WriteString(w, msg)
+	_, err = w.Write(body)
+	if err != nil {
+		log.Printf("Failed to write the response body: %v", err)
+		return
+	}
 }
 
 func cKind(kind string) bPb.CompareKind {
