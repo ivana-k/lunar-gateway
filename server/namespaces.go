@@ -13,23 +13,15 @@ import (
 
 func (server *LunarServer) setupNamespaces() {
 	secrets := server.r.PathPrefix("/namespaces").Subrouter()
-	secrets.HandleFunc("/list", server.listNamespaces()).Methods("GET")
-	secrets.HandleFunc("/mutate", server.mutateNamespaces()).Methods("POST")
+	secrets.HandleFunc("/list", auth(server.rightsList(server.listNamespaces()))).Methods("GET")
+	secrets.HandleFunc("/mutate", auth(server.rightsMutate(server.mutateNamespaces()))).Methods("POST")
 }
 
 var naq = [...]string{"user", "labels", "compare", "name"}
 
 func (s *LunarServer) listNamespaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//TODO: Check rights and so on...!!!
-
-		keys := r.URL.Query()
-		if _, ok := keys[user]; !ok {
-			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
-			return
-		}
-
-		req := listToProto(keys, cPb.ReqKind_NAMESPACES)
+		req := listToProto(r.URL.Query(), cPb.ReqKind_NAMESPACES)
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -52,14 +44,6 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 
 func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//TODO: Check rights and so on...!!!
-
-		keys := r.URL.Query()
-		if _, ok := keys[user]; !ok {
-			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
-			return
-		}
-
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("Failed to read the request body: %v", err)

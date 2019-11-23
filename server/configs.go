@@ -13,23 +13,15 @@ import (
 
 func (server *LunarServer) setupConfigs() {
 	configs := server.r.PathPrefix("/configs").Subrouter()
-	configs.HandleFunc("/list", server.listConfigs()).Methods("GET")
-	configs.HandleFunc("/mutate", server.mutateConfigs()).Methods("POST")
+	configs.HandleFunc("/list", auth(server.rightsList(server.listConfigs()))).Methods("GET")
+	configs.HandleFunc("/mutate", auth(server.rightsMutate(server.mutateConfigs()))).Methods("POST")
 }
 
 var caq = [...]string{"labels", "compare", "user"}
 
 func (s *LunarServer) listConfigs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//TODO: Check rights and so on...!!!
-
-		keys := r.URL.Query()
-		if _, ok := keys[user]; !ok {
-			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
-			return
-		}
-
-		req := listToProto(keys, cPb.ReqKind_CONFIGS)
+		req := listToProto(r.URL.Query(), cPb.ReqKind_CONFIGS)
 		client := NewCelestialClient(s.clients[CELESTIAL])
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -52,14 +44,6 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 
 func (s *LunarServer) mutateConfigs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//TODO: Check rights and so on...!!!
-
-		keys := r.URL.Query()
-		if _, ok := keys[user]; !ok {
-			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
-			return
-		}
-
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("Failed to read the request body: %v", err)
