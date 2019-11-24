@@ -55,11 +55,11 @@ func (server *LunarServer) login() http.HandlerFunc {
 				"Content-Type": "application/json; charset=UTF-8",
 				"Auth-Token":   resp.Data["token"],
 			}
-			sendJSONResponseWithHeader(w, map[string]string{"message": "logged in"}, h)
+			sendJSONResponseWithHeader(w, map[string]string{"message": resp.Data["message"]}, h)
 			return
 		}
 
-		sendJSONResponse(w, map[string]string{"message": "not valid credintials"})
+		sendJSONResponse(w, map[string]string{"message": resp.Data["message"]})
 	}
 }
 
