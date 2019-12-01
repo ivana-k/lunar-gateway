@@ -14,7 +14,7 @@ import (
 
 func auth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, ok := r.Header["Authentication"]; !ok {
+		if _, ok := r.Header["Authorization:"]; !ok {
 			sendErrorMessage(w, "missing authorization token", http.StatusBadRequest)
 			return
 		}
@@ -43,7 +43,7 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 			Data: map[string]string{
 				"intent": spl[4],
 				"kind":   spl[3],
-				"token":  r.Header["Authentication"][0],
+				"token":  r.Header["Authorization:"][0],
 			},
 			Extras: extras,
 		}
@@ -96,7 +96,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 				"intent":       spl[4],
 				"kind":         spl[3],
 				"user":         r.URL.Query()["user"][0],
-				"token":        r.Header["Authentication"][0],
+				"token":        r.Header["Authorization:"][0],
 				"namespace":    data.MTData.Namespace,
 				"queue":        data.MTData.Queue,
 				"forceNSQueue": strconv.FormatBool(data.MTData.ForceNSQueue),
@@ -113,7 +113,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 				"intent":       spl[4],
 				"kind":         spl[3],
 				"user":         r.URL.Query()["user"][0],
-				"token":        r.Header["Authorization"][0],
+				"token":        r.Header["Authorization:"][0],
 				"namespace":    data.MTData.Namespace,
 				"queue":        data.MTData.Queue,
 				"forceNSQueue": strconv.FormatBool(data.MTData.ForceNSQueue),
