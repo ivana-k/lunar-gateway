@@ -12,3 +12,4 @@ lunar-gateway:
       celestial: localhost:8000
       blackhole: localhost:8082
       apollo: localhost:8083
+      stellar: localhost:8007

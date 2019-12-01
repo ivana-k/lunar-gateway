@@ -4,6 +4,7 @@ const (
 	BLACKHOLE = "blackhole"
 	CELESTIAL = "celestial"
 	APOLLO    = "apollo"
+	STELLAR   = "stellar"
 
 	all = "all"
 	any = "any"

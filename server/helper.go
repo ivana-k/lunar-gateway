@@ -5,6 +5,7 @@ import (
 	"github.com/c12s/lunar-gateway/model"
 	bPb "github.com/c12s/scheme/blackhole"
 	cPb "github.com/c12s/scheme/celestial"
+	sPb "github.com/c12s/scheme/stellar"
 	// "io"
 	"log"
 	"net/http"
@@ -304,4 +305,36 @@ func protoToActionsListResp(resp *cPb.ListResp) *model.ActionsResponse {
 		rez.Result = append(rez.Result, data)
 	}
 	return rez
+}
+
+func traceToJson(resp *sPb.GetResp) *model.Trace {
+	trace := []model.TracePart{}
+	traceId := "no trace"
+	for _, item := range resp.Trace {
+		traceId := item.SpanContext.TraceId
+		trace = append(trace, model.TracePart{
+			Name:      item.Name,
+			Logs:      item.Logs,
+			Tags:      item.Tags,
+			StartTime: item.StartTime,
+			EndTime:   item.EndTime,
+			Context: model.SpanContext{
+				TraceId:       traceId,
+				SpanId:        item.SpanContext.SpanId,
+				ParrentSpanId: item.SpanContext.ParrentSpanId,
+				Baggage:       item.SpanContext.Baggage,
+			},
+		})
+	}
+
+	return &model.Trace{
+		TraceId: traceId,
+		Trace:   trace,
+	}
+}
+
+func toGetTrace(traceId string) *sPb.GetReq {
+	return &sPb.GetReq{
+		TraceId: traceId,
+	}
 }

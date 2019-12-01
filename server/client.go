@@ -4,6 +4,7 @@ import (
 	aPb "github.com/c12s/scheme/apollo"
 	bPb "github.com/c12s/scheme/blackhole"
 	cPb "github.com/c12s/scheme/celestial"
+	sPb "github.com/c12s/scheme/stellar"
 	"google.golang.org/grpc"
 	"log"
 )
@@ -33,4 +34,13 @@ func NewApolloClient(address string) aPb.ApolloServiceClient {
 	}
 
 	return aPb.NewApolloServiceClient(conn)
+}
+
+func NewStellarClient(address string) sPb.StellarServiceClient {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to start gRPC connection to apollo service: %v", err)
+	}
+
+	return sPb.NewStellarServiceClient(conn)
 }
