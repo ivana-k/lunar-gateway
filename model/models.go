@@ -111,7 +111,7 @@ type SpanContext struct {
 	Baggage       map[string]string `json:"baggage"`
 }
 
-type TracePart struct {
+type Span struct {
 	Context   SpanContext       `json:"spanContext"`
 	Name      string            `json:"name"`
 	Logs      map[string]string `json:"logs"`
@@ -121,8 +121,8 @@ type TracePart struct {
 }
 
 type Trace struct {
-	TraceId string      `json:"traceId"`
-	Trace   []TracePart `json:"trace"`
+	TraceId string `json:"traceId"`
+	Trace   []Span `json:"trace"`
 }
 
 type Traces struct {

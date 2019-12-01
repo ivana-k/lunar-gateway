@@ -308,11 +308,11 @@ func protoToActionsListResp(resp *cPb.ListResp) *model.ActionsResponse {
 }
 
 func traceToJson(resp *sPb.GetResp) *model.Trace {
-	trace := []model.TracePart{}
+	trace := []model.Span{}
 	traceId := "no trace"
 	for _, item := range resp.Trace {
 		traceId := item.SpanContext.TraceId
-		trace = append(trace, model.TracePart{
+		trace = append(trace, model.Span{
 			Name:      item.Name,
 			Logs:      item.Logs,
 			Tags:      item.Tags,
