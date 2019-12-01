@@ -307,7 +307,7 @@ func protoToActionsListResp(resp *cPb.ListResp) *model.ActionsResponse {
 	return rez
 }
 
-func traceToJson(resp *sPb.GetResp) *model.Trace {
+func traceGetToJson(resp *sPb.GetResp) *model.Trace {
 	trace := []model.Span{}
 	traceId := "no trace"
 	for _, item := range resp.Trace {
@@ -333,8 +333,25 @@ func traceToJson(resp *sPb.GetResp) *model.Trace {
 	}
 }
 
+func traceListToJson(resp *sPb.ListResp) *model.Traces {
+	traces := []model.Trace{}
+	for _, item := range resp.Traces {
+		traces = append(traces, *traceGetToJson(item))
+	}
+
+	return &model.Traces{
+		Traces: traces,
+	}
+}
+
 func toGetTrace(traceId string) *sPb.GetReq {
 	return &sPb.GetReq{
 		TraceId: traceId,
+	}
+}
+
+func toListTrace(tags string) *sPb.ListReq {
+	return &sPb.ListReq{
+		Query: map[string]string{"query": tags},
 	}
 }
