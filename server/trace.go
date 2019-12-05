@@ -11,12 +11,12 @@ import (
 func (server *LunarServer) setupTrace() {
 	configs := server.r.PathPrefix("/trace").Subrouter()
 	configs.HandleFunc("/list", auth(server.rightsList(server.listTraces()))).Methods("GET")
-	configs.HandleFunc("/get", auth(server.rightsMutate(server.getTrace()))).Methods("GET")
+	configs.HandleFunc("/get", auth(server.rightsList(server.getTrace()))).Methods("GET")
 }
 
 func (s *LunarServer) listTraces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if _, ok := r.URL.Query()["tags"]; ok {
+		if _, ok := r.URL.Query()["tags"]; !ok {
 			sendErrorMessage(w, errors.New("no tags in the request").Error(), http.StatusBadRequest)
 			return
 		}
@@ -44,7 +44,7 @@ func (s *LunarServer) listTraces() http.HandlerFunc {
 
 func (s *LunarServer) getTrace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if _, ok := r.URL.Query()["traceId"]; ok {
+		if _, ok := r.URL.Query()["traceId"]; !ok {
 			sendErrorMessage(w, errors.New("no traceId in the request").Error(), http.StatusBadRequest)
 			return
 		}

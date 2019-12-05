@@ -311,7 +311,7 @@ func traceGetToJson(resp *sPb.GetResp) *model.Trace {
 	trace := []model.Span{}
 	traceId := "no trace"
 	for _, item := range resp.Trace {
-		traceId := item.SpanContext.TraceId
+		traceId = item.SpanContext.TraceId
 		trace = append(trace, model.Span{
 			Name:      item.Name,
 			Logs:      item.Logs,
