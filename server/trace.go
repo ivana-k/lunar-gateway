@@ -18,7 +18,7 @@ func (server *LunarServer) setupTrace() {
 
 func (s *LunarServer) listTraces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		span, _ := stellar.FromRequest(r, "lunar-gateway.listTraces")
+		span, _ := stellar.FromRequest(r, "listTraces")
 		defer span.Finish()
 		fmt.Println(span)
 
@@ -53,7 +53,7 @@ func (s *LunarServer) listTraces() http.HandlerFunc {
 
 func (s *LunarServer) getTrace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		span, _ := stellar.FromRequest(r, "lunar-gateway.getTrace")
+		span, _ := stellar.FromRequest(r, "getTrace")
 		defer span.Finish()
 		fmt.Println(span)
 

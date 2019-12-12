@@ -19,7 +19,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 		trace := stellar.Init("lunar-gateway")
 		defer trace.Finish()
 
-		span := trace.Span("middleware.auth")
+		span := trace.Span("auth")
 		defer span.Finish()
 		fmt.Println(span)
 		span.AddTag(
@@ -44,7 +44,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 
 func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		span, _ := stellar.FromRequest(r, "middleware.rightsList")
+		span, _ := stellar.FromRequest(r, "rightsList")
 		defer span.Finish()
 		fmt.Println(span)
 
@@ -90,8 +90,13 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 
 func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		span, _ := stellar.FromRequest(r, "rightsMutate")
+		defer span.Finish()
+		fmt.Println(span)
+
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
+			span.AddLog(&stellar.KV{"Failed to read the request body", err.Error()})
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -102,6 +107,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		if spl[3] != "namespaces" {
 			data := &model.MutateRequest{}
 			if err := json.Unmarshal(body, data); err != nil {
+				span.AddLog(&stellar.KV{"Could not decode the request body as JSON", err.Error()})
 				sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 				return
 			}
@@ -127,6 +133,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		} else {
 			data := &model.NMutateRequest{}
 			if err := json.Unmarshal(body, data); err != nil {
+				span.AddLog(&stellar.KV{"Could not decode the request body as JSON", err.Error()})
 				sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 				return
 			}
@@ -144,16 +151,18 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		}
 
 		client := NewApolloClient(server.clients[APOLLO])
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Auth(ctx, req)
 		if err != nil {
+			span.AddLog(&stellar.KV{"apollo.auth error", err.Error()})
 			sendErrorMessage(w, "Error from Apollo Service!", http.StatusBadRequest)
 			return
 		}
 
 		if !resp.Value {
+			span.AddLog(&stellar.KV{"apollo.auth value", resp.Data["message"]})
 			sendErrorMessage(w, resp.Data["message"], http.StatusBadRequest)
 			return
 		}

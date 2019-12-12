@@ -3,10 +3,11 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/c12s/lunar-gateway/model"
 	cPb "github.com/c12s/scheme/celestial"
+	sg "github.com/c12s/stellar-go"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 )
@@ -21,13 +22,18 @@ var naq = [...]string{"user", "labels", "compare", "name"}
 
 func (s *LunarServer) listNamespaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		span, _ := sg.FromRequest(r, "listNamespaces")
+		defer span.Finish()
+		fmt.Println(span)
+
 		req := listToProto(r.URL.Query(), cPb.ReqKind_NAMESPACES)
 		client := NewCelestialClient(s.clients[CELESTIAL])
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(sg.NewTracedGRPCContext(nil, span), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
+			span.AddLog(&sg.KV{"celestial.list error", err.Error()})
 			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -35,6 +41,7 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 		rresp := protoToNSListResp(resp)
 		data, rerr := json.Marshal(rresp)
 		if rerr != nil {
+			span.AddLog(&sg.KV{"proto to json error", rerr.Error()})
 			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
 			return
 		}
@@ -44,27 +51,33 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 
 func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		span, _ := sg.FromRequest(r, "mutateNamespaces")
+		defer span.Finish()
+		fmt.Println(span)
+
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Printf("Failed to read the request body: %v", err)
+			span.AddLog(&sg.KV{"Failed to read the request body", err.Error()})
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		data := &model.NMutateRequest{}
 		if err := json.Unmarshal(body, data); err != nil {
+			span.AddLog(&sg.KV{"Could not decode the request body as JSON", err.Error()})
 			sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 			return
 		}
 
 		req := mutateNSToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(sg.NewTracedGRPCContext(nil, span), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Put(ctx, req)
 		if err != nil {
-			sendErrorMessage(w, "Error from Celestial Service!", http.StatusBadRequest)
+			span.AddLog(&sg.KV{"blackhole.put error", err.Error()})
+			sendErrorMessage(w, "Error from Blackhole Service!", http.StatusBadRequest)
 			return
 		}
 
