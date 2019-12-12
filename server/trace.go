@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	stellar "github.com/c12s/stellar-go"
 	"net/http"
 	"time"
 )
@@ -16,18 +18,24 @@ func (server *LunarServer) setupTrace() {
 
 func (s *LunarServer) listTraces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		span, _ := stellar.FromRequest(r, "lunar-gateway.listTraces")
+		defer span.Finish()
+		fmt.Println(span)
+
 		if _, ok := r.URL.Query()["tags"]; !ok {
+			span.AddLog(&stellar.KV{"query error", "no tags in the request"})
 			sendErrorMessage(w, errors.New("no tags in the request").Error(), http.StatusBadRequest)
 			return
 		}
 
 		req := toListTrace(r.URL.Query()["tags"][0])
 		client := NewStellarClient(s.clients[STELLAR])
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
+			span.AddLog(&stellar.KV{"stellar.list error", err.Error()})
 			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -35,6 +43,7 @@ func (s *LunarServer) listTraces() http.HandlerFunc {
 		rresp := traceListToJson(resp)
 		data, rerr := json.Marshal(rresp)
 		if rerr != nil {
+			span.AddLog(&stellar.KV{"proto to json error", rerr.Error()})
 			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
 			return
 		}
@@ -44,18 +53,24 @@ func (s *LunarServer) listTraces() http.HandlerFunc {
 
 func (s *LunarServer) getTrace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		span, _ := stellar.FromRequest(r, "lunar-gateway.getTrace")
+		defer span.Finish()
+		fmt.Println(span)
+
 		if _, ok := r.URL.Query()["traceId"]; !ok {
+			span.AddLog(&stellar.KV{"queryr error", "no traceId in the request"})
 			sendErrorMessage(w, errors.New("no traceId in the request").Error(), http.StatusBadRequest)
 			return
 		}
 
 		req := toGetTrace(r.URL.Query()["traceId"][0])
 		client := NewStellarClient(s.clients[STELLAR])
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Get(ctx, req)
 		if err != nil {
+			span.AddLog(&stellar.KV{"stellar.get error", err.Error()})
 			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -63,6 +78,7 @@ func (s *LunarServer) getTrace() http.HandlerFunc {
 		rresp := traceGetToJson(resp)
 		data, rerr := json.Marshal(rresp)
 		if rerr != nil {
+			span.AddLog(&stellar.KV{"proto to json error", rerr.Error()})
 			sendErrorMessage(w, rerr.Error(), http.StatusBadRequest)
 			return
 		}

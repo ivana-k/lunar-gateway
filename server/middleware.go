@@ -3,8 +3,10 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/c12s/lunar-gateway/model"
 	aPb "github.com/c12s/scheme/apollo"
+	stellar "github.com/c12s/stellar-go"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -14,22 +16,40 @@ import (
 
 func auth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		trace := stellar.Init("lunar-gateway")
+		defer trace.Finish()
+
+		span := trace.Span("middleware.auth")
+		defer span.Finish()
+		fmt.Println(span)
+		span.AddTag(
+			&stellar.KV{"app", "test"},
+			&stellar.KV{"trace", "mytrace"},
+		)
+
 		if _, ok := r.Header["Authorization"]; !ok {
+			span.AddLog(&stellar.KV{"auth header error", "missing authorization token"})
 			sendErrorMessage(w, "missing authorization token", http.StatusBadRequest)
 			return
 		}
 
 		if _, ok := r.URL.Query()["user"]; !ok {
+			span.AddLog(&stellar.KV{"auth user error", "missing user id"})
 			sendErrorMessage(w, "missing user id", http.StatusBadRequest)
 			return
 		}
-		next(w, r)
+		next(w, stellar.TracedRequest(r, span))
 	})
 }
 
 func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		span, _ := stellar.FromRequest(r, "middleware.rightsList")
+		defer span.Finish()
+		fmt.Println(span)
+
 		if len(r.URL.Query()) == 0 {
+			span.AddLog(&stellar.KV{"query error", "missing query parameters"})
 			sendErrorMessage(w, "missing query parameters", http.StatusBadRequest)
 			return
 		}
@@ -49,16 +69,18 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		client := NewApolloClient(server.clients[APOLLO])
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Auth(ctx, req)
 		if err != nil {
+			span.AddLog(&stellar.KV{"apollo.auth error", err.Error()})
 			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		if !resp.Value {
+			span.AddLog(&stellar.KV{"apollo.auth value", resp.Data["message"]})
 			sendErrorMessage(w, resp.Data["message"], http.StatusBadRequest)
 			return
 		}

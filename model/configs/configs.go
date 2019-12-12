@@ -10,9 +10,10 @@ type LunarGateway struct {
 }
 
 type Config struct {
-	ConfVersion  string            `yaml:"version"`
-	ServerConf   ServerConfig      `yaml:"server"`
-	ServicesConf map[string]string `yaml:"services"`
+	ConfVersion    string            `yaml:"version"`
+	ServerConf     ServerConfig      `yaml:"server"`
+	ServicesConf   map[string]string `yaml:"services"`
+	InstrumentConf map[string]string `yaml:"instrument"`
 }
 
 type ServerSecurity struct {
