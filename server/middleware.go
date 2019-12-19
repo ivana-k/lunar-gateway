@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -100,6 +101,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(body)) //ReadAll remove contet, so save it!
 
 		spl := strings.Split(r.URL.Path, "/")
 		extras := map[string]*aPb.OptExtras{}
