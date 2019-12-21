@@ -25,6 +25,7 @@ func (s *LunarServer) listConfigs() http.HandlerFunc {
 		span, _ := sg.FromRequest(r, "listConfigs")
 		defer span.Finish()
 		fmt.Println(span)
+		fmt.Println(span.Serialize())
 
 		req := listToProto(r.URL.Query(), cPb.ReqKind_CONFIGS)
 		client := NewCelestialClient(s.clients[CELESTIAL])
@@ -54,6 +55,7 @@ func (s *LunarServer) mutateConfigs() http.HandlerFunc {
 		span, _ := sg.FromRequest(r, "mutateConfigs")
 		defer span.Finish()
 		fmt.Println(span)
+		fmt.Println("SERIALIZE ", span.Serialize())
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {

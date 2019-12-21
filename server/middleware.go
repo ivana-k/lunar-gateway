@@ -27,6 +27,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			&stellar.KV{"app", "test"},
 			&stellar.KV{"trace", "mytrace"},
 		)
+		fmt.Println("SERIALIZE ", span.Serialize())
 
 		if _, ok := r.Header["Authorization"]; !ok {
 			span.AddLog(&stellar.KV{"auth header error", "missing authorization token"})
@@ -48,6 +49,7 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 		span, _ := stellar.FromRequest(r, "rightsList")
 		defer span.Finish()
 		fmt.Println(span)
+		fmt.Println("SERIALIZE ", span.Serialize())
 
 		if len(r.URL.Query()) == 0 {
 			span.AddLog(&stellar.KV{"query error", "missing query parameters"})
@@ -94,6 +96,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		span, _ := stellar.FromRequest(r, "rightsMutate")
 		defer span.Finish()
 		fmt.Println(span)
+		fmt.Println("SERIALIZE ", span.Serialize())
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
