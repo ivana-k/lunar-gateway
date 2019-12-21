@@ -128,6 +128,7 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 			req.Data = map[string]string{
 				"intent":       spl[4],
 				"kind":         spl[3],
+				"service":      "lunar-gateway",
 				"user":         r.URL.Query()["user"][0],
 				"token":        r.Header["Authorization"][0],
 				"namespace":    data.MTData.Namespace,
