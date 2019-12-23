@@ -28,7 +28,13 @@ func (s *LunarServer) listActions() http.HandlerFunc {
 
 		req := listToProto(r.URL.Query(), cPb.ReqKind_ACTIONS)
 		client := NewCelestialClient(s.clients[CELESTIAL])
-		ctx, cancel := context.WithTimeout(sg.NewTracedGRPCContext(nil, span), 10*time.Second)
+		ctx, cancel := context.WithTimeout(
+			appendToken(
+				sg.NewTracedGRPCContext(nil, span),
+				r.Header["Authorization"][0],
+			),
+			10*time.Second,
+		)
 		defer cancel()
 
 		resp, err := client.List(ctx, req)
@@ -71,7 +77,13 @@ func (s *LunarServer) mutateActions() http.HandlerFunc {
 
 		req := mutateToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
-		ctx, cancel := context.WithTimeout(sg.NewTracedGRPCContext(nil, span), 10*time.Second)
+		ctx, cancel := context.WithTimeout(
+			appendToken(
+				sg.NewTracedGRPCContext(nil, span),
+				r.Header["Authorization"][0],
+			),
+			10*time.Second,
+		)
 		defer cancel()
 
 		resp, err := client.Put(ctx, req)

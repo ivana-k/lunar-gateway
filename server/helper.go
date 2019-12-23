@@ -7,11 +7,17 @@ import (
 	cPb "github.com/c12s/scheme/celestial"
 	sPb "github.com/c12s/scheme/stellar"
 	// "io"
+	"context"
+	"google.golang.org/grpc/metadata"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
 )
+
+func appendToken(ctx context.Context, token string) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, "token", token)
+}
 
 func merge(m1, m2 map[string]string) {
 	for k, v := range m2 {

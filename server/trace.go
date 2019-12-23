@@ -30,7 +30,13 @@ func (s *LunarServer) listTraces() http.HandlerFunc {
 
 		req := toListTrace(r.URL.Query()["tags"][0])
 		client := NewStellarClient(s.clients[STELLAR])
-		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
+		ctx, cancel := context.WithTimeout(
+			appendToken(
+				stellar.NewTracedGRPCContext(nil, span),
+				r.Header["Authorization"][0],
+			),
+			10*time.Second,
+		)
 		defer cancel()
 
 		resp, err := client.List(ctx, req)
@@ -65,7 +71,13 @@ func (s *LunarServer) getTrace() http.HandlerFunc {
 
 		req := toGetTrace(r.URL.Query()["traceId"][0])
 		client := NewStellarClient(s.clients[STELLAR])
-		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
+		ctx, cancel := context.WithTimeout(
+			appendToken(
+				stellar.NewTracedGRPCContext(nil, span),
+				r.Header["Authorization"][0],
+			),
+			10*time.Second,
+		)
 		defer cancel()
 
 		resp, err := client.Get(ctx, req)
