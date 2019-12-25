@@ -16,7 +16,7 @@ import (
 )
 
 func appendToken(ctx context.Context, token string) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, "token", token)
+	return metadata.AppendToOutgoingContext(ctx, "c12stoken", token)
 }
 
 func merge(m1, m2 map[string]string) {
