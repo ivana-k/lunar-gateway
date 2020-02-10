@@ -34,4 +34,5 @@ const (
 	Secrets    = "Secrets"
 	Actions    = "Actions"
 	Namespaces = "Namespaces"
+	Roles      = "Roles"
 )

@@ -3,7 +3,7 @@ module github.com/c12s/lunar-gateway
 go 1.13
 
 require (
-	github.com/c12s/scheme v0.0.0-20191204214602-7126694c68c7
+	github.com/c12s/scheme v0.0.0-20200209143502-71320c9cbaef
 	github.com/c12s/stellar-go v0.0.0-20191212010545-b354d089bf60
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
