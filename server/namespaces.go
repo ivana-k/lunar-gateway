@@ -27,7 +27,7 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 		fmt.Println(span)
 
 		req := listToProto(r.URL.Query(), cPb.ReqKind_NAMESPACES)
-		client := NewCelestialClient(s.clients[CELESTIAL])
+		client := NewMeridianClient(s.clients[MERIDIAN])
 		ctx, cancel := context.WithTimeout(
 			appendToken(
 				sg.NewTracedGRPCContext(nil, span),
@@ -89,7 +89,7 @@ func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 		resp, err := client.Put(ctx, req)
 		if err != nil {
 			span.AddLog(&sg.KV{"blackhole.put error", err.Error()})
-			sendErrorMessage(w, "Error from Blackhole Service!", http.StatusBadRequest)
+			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 

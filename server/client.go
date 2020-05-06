@@ -4,6 +4,7 @@ import (
 	aPb "github.com/c12s/scheme/apollo"
 	bPb "github.com/c12s/scheme/blackhole"
 	cPb "github.com/c12s/scheme/celestial"
+	mPb "github.com/c12s/scheme/meridian"
 	sPb "github.com/c12s/scheme/stellar"
 	"google.golang.org/grpc"
 	"log"
@@ -14,7 +15,6 @@ func NewCelestialClient(address string) cPb.CelestialServiceClient {
 	if err != nil {
 		log.Fatalf("Failed to start gRPC connection to celestial service: %v", err)
 	}
-
 	return cPb.NewCelestialServiceClient(conn)
 }
 
@@ -23,7 +23,6 @@ func NewBlackHoleClient(address string) bPb.BlackHoleServiceClient {
 	if err != nil {
 		log.Fatalf("Failed to start gRPC connection to blackhole service: %v", err)
 	}
-
 	return bPb.NewBlackHoleServiceClient(conn)
 }
 
@@ -32,7 +31,6 @@ func NewApolloClient(address string) aPb.ApolloServiceClient {
 	if err != nil {
 		log.Fatalf("Failed to start gRPC connection to apollo service: %v", err)
 	}
-
 	return aPb.NewApolloServiceClient(conn)
 }
 
@@ -41,6 +39,13 @@ func NewStellarClient(address string) sPb.StellarServiceClient {
 	if err != nil {
 		log.Fatalf("Failed to start gRPC connection to apollo service: %v", err)
 	}
-
 	return sPb.NewStellarServiceClient(conn)
+}
+
+func NewMeridianClient(address string) mPb.MeridianServiceClient {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to start gRPC connection to apollo service: %v", err)
+	}
+	return mPb.NewMeridianServiceClient(conn)
 }

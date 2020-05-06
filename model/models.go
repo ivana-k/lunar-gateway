@@ -104,6 +104,15 @@ type Credentials struct {
 	Username string `json:"username"`
 }
 
+type UMutateRequest struct {
+	Version string            `json:"version"`
+	Request string            `json:"request"`
+	Kind    string            `json:"kind"`
+	MTData  Metadata          `json:"metadata"`
+	Labels  map[string]string `json:"labels"`
+	Info    map[string]string `json:"info"`
+}
+
 type SpanContext struct {
 	TraceId       string            `json:"traceId"`
 	SpanId        string            `json:"spanId"`

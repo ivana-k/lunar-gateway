@@ -88,7 +88,7 @@ func (s *LunarServer) mutateRoles() http.HandlerFunc {
 		resp, err := client.Put(ctx, req)
 		if err != nil {
 			span.AddLog(&sg.KV{"blackhole.put error", err.Error()})
-			sendErrorMessage(w, "Error from Blackhole Service!", http.StatusBadRequest)
+			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		sendJSONResponse(w, map[string]string{"message": resp.Msg})

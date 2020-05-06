@@ -5,6 +5,7 @@ const (
 	CELESTIAL = "celestial"
 	APOLLO    = "apollo"
 	STELLAR   = "stellar"
+	MERIDIAN  = "meridian"
 
 	all = "all"
 	any = "any"

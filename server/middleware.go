@@ -27,7 +27,6 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			&stellar.KV{"app", "test"},
 			&stellar.KV{"trace", "mytrace"},
 		)
-		fmt.Println("SERIALIZE ", span.Serialize())
 
 		if _, ok := r.Header["Authorization"]; !ok {
 			span.AddLog(&stellar.KV{"auth header error", "missing authorization token"})
@@ -49,7 +48,6 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 		span, _ := stellar.FromRequest(r, "rightsList")
 		defer span.Finish()
 		fmt.Println(span)
-		fmt.Println("SERIALIZE ", span.Serialize())
 
 		if len(r.URL.Query()) == 0 {
 			span.AddLog(&stellar.KV{"query error", "missing query parameters"})
@@ -64,7 +62,8 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 		spl := strings.Split(r.URL.Path, "/")
 		req := &aPb.AuthOpt{
 			Data: map[string]string{
-				"intent": spl[4],
+				"intent": "auth",
+				"action": spl[4],
 				"kind":   spl[3],
 				"token":  r.Header["Authorization"][0],
 			},
@@ -72,7 +71,11 @@ func (server *LunarServer) rightsList(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		client := NewApolloClient(server.clients[APOLLO])
-		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
+		ctx, cancel := context.WithTimeout(
+			appendToken(
+				stellar.NewTracedGRPCContext(nil, span),
+				r.Header["Authorization"][0],
+			), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Auth(ctx, req)
@@ -96,7 +99,6 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		span, _ := stellar.FromRequest(r, "rightsMutate")
 		defer span.Finish()
 		fmt.Println(span)
-		fmt.Println("SERIALIZE ", span.Serialize())
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -109,7 +111,31 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		spl := strings.Split(r.URL.Path, "/")
 		extras := map[string]*aPb.OptExtras{}
 		req := &aPb.AuthOpt{}
-		if spl[3] != "namespaces" {
+		if spl[3] == "roles" {
+			data := &model.RMutateRequest{}
+			if err := json.Unmarshal(body, data); err != nil {
+				span.AddLog(&stellar.KV{"Could not decode the request body as JSON", err.Error()})
+				sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
+				return
+			}
+
+			extras["user"] = &aPb.OptExtras{Data: []string{data.Payload.User}}
+			extras["resources"] = &aPb.OptExtras{Data: data.Payload.Resources}
+			extras["verbs"] = &aPb.OptExtras{Data: data.Payload.Verbs}
+
+			req.Data = map[string]string{
+				"intent":       "auth",
+				"action":       spl[4],
+				"kind":         spl[3],
+				"user":         r.URL.Query()["user"][0],
+				"token":        r.Header["Authorization"][0],
+				"namespace":    data.MTData.Namespace,
+				"queue":        data.MTData.Queue,
+				"forceNSQueue": strconv.FormatBool(data.MTData.ForceNSQueue),
+			}
+			req.Extras = extras
+
+		} else if spl[3] != "namespaces" {
 			data := &model.MutateRequest{}
 			if err := json.Unmarshal(body, data); err != nil {
 				span.AddLog(&stellar.KV{"Could not decode the request body as JSON", err.Error()})
@@ -121,12 +147,25 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 				tmp := []string{}
 				for _, c := range r.Clusters {
 					tmp = append(tmp, c.ID)
+
+					l := []string{}
+					for lk, lv := range c.Selector.Labels {
+						l = append(l, strings.Join([]string{lk, lv}, ":"))
+					}
+					tmp = append(tmp, strings.Join(l, ","))
+
+					cmp := []string{}
+					for ck, cv := range c.Selector.Compare {
+						cmp = append(cmp, strings.Join([]string{ck, cv}, ":"))
+					}
+					tmp = append(tmp, strings.Join(cmp, ","))
 				}
 				extras[r.ID] = &aPb.OptExtras{Data: tmp}
 			}
 
 			req.Data = map[string]string{
-				"intent":       spl[4],
+				"intent":       "auth",
+				"action":       spl[4],
 				"kind":         spl[3],
 				"user":         r.URL.Query()["user"][0],
 				"token":        r.Header["Authorization"][0],
@@ -143,8 +182,16 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 				return
 			}
 
+			l := []string{}
+			for lk, lv := range data.Labels {
+				l = append(l, strings.Join([]string{lk, lv}, ":"))
+			}
+			extras["labels"] = &aPb.OptExtras{Data: l}
+			extras["namespace"] = &aPb.OptExtras{Data: []string{data.Name}}
+
 			req.Data = map[string]string{
-				"intent":       spl[4],
+				"intent":       "auth",
+				"action":       spl[4],
 				"kind":         spl[3],
 				"user":         r.URL.Query()["user"][0],
 				"token":        r.Header["Authorization"][0],
@@ -156,7 +203,11 @@ func (server *LunarServer) rightsMutate(next http.HandlerFunc) http.HandlerFunc 
 		}
 
 		client := NewApolloClient(server.clients[APOLLO])
-		ctx, cancel := context.WithTimeout(stellar.NewTracedGRPCContext(nil, span), 10*time.Second)
+		ctx, cancel := context.WithTimeout(
+			appendToken(
+				stellar.NewTracedGRPCContext(nil, span),
+				r.Header["Authorization"][0],
+			), 10*time.Second)
 		defer cancel()
 
 		resp, err := client.Auth(ctx, req)
