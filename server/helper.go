@@ -127,6 +127,8 @@ func tKind(kind string) bPb.TaskKind {
 		return bPb.TaskKind_ACTIONS
 	case Namespaces:
 		return bPb.TaskKind_NAMESPACES
+	case Roles:
+		return bPb.TaskKind_ROLES
 	default:
 		return -1
 	}
@@ -218,6 +220,26 @@ func mutateNSToProto(data *model.NMutateRequest) *bPb.PutReq {
 	}
 }
 
+func rolesToProto(data *model.RMutateRequest) *bPb.PutReq {
+	extras := map[string]string{}
+	extras["user"] = data.Payload.User
+	extras["resources"] = strings.Join(data.Payload.Resources, ",")
+	extras["verbs"] = strings.Join(data.Payload.Verbs, ",")
+	return &bPb.PutReq{
+		Version: data.Version,
+		UserId:  data.Request,
+		Kind:    tKind(data.Kind),
+		Mtdata: &bPb.Metadata{
+			TaskName:            data.MTData.TaskName,
+			Timestamp:           data.MTData.Timestamp,
+			Namespace:           data.MTData.Namespace,
+			ForceNamespaceQueue: data.MTData.ForceNSQueue,
+			Queue:               data.MTData.Queue,
+		},
+		Extras: extras,
+	}
+}
+
 func listToProto(data map[string][]string, kind cPb.ReqKind) *cPb.ListReq {
 	extras := map[string]string{}
 	for k, v := range data {
@@ -286,6 +308,10 @@ func protoToConfigListResp(resp *cPb.ListResp) *model.ConfigResponse {
 		rez.Result = append(rez.Result, data)
 	}
 	return rez
+}
+
+func protoToRolesListResp(resp *cPb.ListResp) *model.RolesResponse {
+	return &model.RolesResponse{Result: resp.Extras}
 }
 
 func protoToActionsListResp(resp *cPb.ListResp) *model.ActionsResponse {

@@ -12,22 +12,21 @@ import (
 	"time"
 )
 
-func (server *LunarServer) setupNamespaces() {
-	secrets := server.r.PathPrefix("/namespaces").Subrouter()
-	secrets.HandleFunc("/list", auth(server.rightsList(server.listNamespaces()))).Methods("GET")
-	secrets.HandleFunc("/mutate", auth(server.rightsMutate(server.mutateNamespaces()))).Methods("POST")
+func (server *LunarServer) setupRoles() {
+	configs := server.r.PathPrefix("/roles").Subrouter()
+	configs.HandleFunc("/list", auth(server.rightsList(server.listRoles()))).Methods("GET")
+	configs.HandleFunc("/mutate", auth(server.rightsMutate(server.mutateRoles()))).Methods("POST")
 }
 
-var naq = [...]string{"user", "labels", "compare", "name"}
-
-func (s *LunarServer) listNamespaces() http.HandlerFunc {
+func (s *LunarServer) listRoles() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		span, _ := sg.FromRequest(r, "listNamespaces")
+		span, _ := sg.FromRequest(r, "listRoles")
 		defer span.Finish()
 		fmt.Println(span)
+		fmt.Println(span.Serialize())
 
-		req := listToProto(r.URL.Query(), cPb.ReqKind_NAMESPACES)
-		client := NewMeridianClient(s.clients[MERIDIAN])
+		req := listToProto(r.URL.Query(), cPb.ReqKind_ROLES)
+		client := NewApolloClient(s.clients[APOLLO])
 		ctx, cancel := context.WithTimeout(
 			appendToken(
 				sg.NewTracedGRPCContext(nil, span),
@@ -39,12 +38,12 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 
 		resp, err := client.List(ctx, req)
 		if err != nil {
-			span.AddLog(&sg.KV{"celestial.list error", err.Error()})
+			span.AddLog(&sg.KV{"apollo.list error", err.Error()})
 			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		rresp := protoToNSListResp(resp)
+		rresp := protoToRolesListResp(resp)
 		data, rerr := json.Marshal(rresp)
 		if rerr != nil {
 			span.AddLog(&sg.KV{"proto to json error", rerr.Error()})
@@ -55,9 +54,9 @@ func (s *LunarServer) listNamespaces() http.HandlerFunc {
 	}
 }
 
-func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
+func (s *LunarServer) mutateRoles() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		span, _ := sg.FromRequest(r, "mutateNamespaces")
+		span, _ := sg.FromRequest(r, "mutateRoles")
 		defer span.Finish()
 		fmt.Println(span)
 
@@ -68,14 +67,14 @@ func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 			return
 		}
 
-		data := &model.NMutateRequest{}
+		data := &model.RMutateRequest{}
 		if err := json.Unmarshal(body, data); err != nil {
 			span.AddLog(&sg.KV{"Could not decode the request body as JSON", err.Error()})
 			sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 			return
 		}
 
-		req := mutateNSToProto(data)
+		req := rolesToProto(data)
 		client := NewBlackHoleClient(s.clients[BLACKHOLE])
 		ctx, cancel := context.WithTimeout(
 			appendToken(
@@ -92,7 +91,6 @@ func (s *LunarServer) mutateNamespaces() http.HandlerFunc {
 			sendErrorMessage(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
 		sendJSONResponse(w, map[string]string{"message": resp.Msg})
 	}
 }
