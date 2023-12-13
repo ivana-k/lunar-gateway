@@ -1,18 +1,23 @@
-module github.com/c12s/lunar-gateway
+module gateway
 
-go 1.13
+go 1.21.1
 
 require (
-	github.com/c12s/scheme v0.0.0-20200211232926-6490b386ab3f
-	github.com/c12s/stellar-go v0.0.0-20191212010545-b354d089bf60
-	github.com/gorilla/handlers v1.4.2
-	github.com/gorilla/mux v1.7.3
-	github.com/nats-io/nkeys v0.1.3 // indirect
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
-	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
-	golang.org/x/text v0.3.2 // indirect
-	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
-	google.golang.org/grpc v1.25.1
-	gopkg.in/yaml.v2 v2.2.7
+	github.com/fullstorydev/grpcurl v1.8.8
+	github.com/goccy/go-json v0.10.2
+	github.com/gorilla/mux v1.8.0
+	github.com/jhump/protoreflect v1.15.2
+	google.golang.org/grpc v1.57.0
+	gopkg.in/yaml.v3 v3.0.1
+)
+
+require (
+	github.com/bufbuild/protocompile v0.6.0 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 )

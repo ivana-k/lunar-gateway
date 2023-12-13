@@ -1,16 +1,18 @@
 package main
 
 import (
-	"github.com/c12s/lunar-gateway/model/configs"
-	"github.com/c12s/lunar-gateway/server"
-	"log"
+	"fmt"
+	"gateway/config"
+	"gateway/startup"
 )
 
 func main() {
-	conf, err := configs.ConfigFile()
+	conf, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return
 	}
-	server := server.NewServer(conf)
-	server.Start()
+
+	gateway := startup.NewServer(conf)
+	gateway.Start()
 }
