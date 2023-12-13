@@ -1,0 +1,36 @@
+gateway:
+  route: /apis
+  port: 8000
+services:
+  UserService: user_service:8080
+  OrderService: order_service:8080
+groups:
+  core:
+    v1:
+      CreateUser:
+        method_route: /user
+        type: POST
+        service: UserService
+      CreateOrder:
+        method_route: /order
+        type: POST
+        service: OrderService
+    v2:
+      CreateOrderV2:
+        method_route: /order
+        type: POST
+        service: OrderService
+  other:
+    v1:
+      PathParamsTest:
+        method_route: /{id}/asd/{name}
+        type: GET
+        service: UserService
+      PathParamTest:
+        method_route: /asdf/{id}
+        type: DELETE
+        service: UserService
+      PathParamsAndBodyTest:
+        method_route: /{name}/asd/{id}
+        type: PUT
+        service: UserService
