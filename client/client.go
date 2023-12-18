@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/fullstorydev/grpcurl"
@@ -38,6 +39,7 @@ func (client *Client) InvokeGrpcMethod(writer http.ResponseWriter, req *http.Req
 
 	err := grpcurl.InvokeRPC(context.Background(), descSource, client.cc, client.grpcServiceName+"/"+mtdName, headers, h, rf.Next)
 	if err != nil {
+		log.Printf("[Error] %+v", err)
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}

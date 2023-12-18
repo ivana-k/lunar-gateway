@@ -26,6 +26,7 @@ func (s *Server) Start() {
 }
 
 func (s *Server) prepareClients() *client.ClientRegistry {
+	log.Println("Preparing clients")
 	clientRegistry := &client.ClientRegistry{
 		Clients: make(map[string]client.Client),
 	}
@@ -44,6 +45,7 @@ func (s *Server) prepareRoutes(clientRegistry *client.ClientRegistry) *mux.Route
 		for version, methods := range versions {
 			versionRouter := groupRouter.PathPrefix("/" + version).Subrouter()
 			for mtdName, mtdConf := range methods {
+				log.Printf("Name %s Conf %+v", mtdName, mtdConf)
 				client := clientRegistry.Clients[mtdConf.Service]
 				versionRouter.Path(mtdConf.MethodRoute).HandlerFunc(methodNameMiddleware(mtdName, client.InvokeGrpcMethod)).Methods(mtdConf.Type)
 			}

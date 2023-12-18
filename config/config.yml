@@ -1,36 +1,51 @@
 gateway:
   route: /apis
-  port: 8000
+  port: 5555
 services:
-  UserService: user_service:8080
-  OrderService: order_service:8080
+  Magnetar: magnetar:5000
+  Kuiper: kuiper:9001
+  AuthService: iam-service:8002
+  OortAdministrator: oort:8000
 groups:
   core:
     v1:
-      CreateUser:
-        method_route: /user
+      RegisterUser:
+        method_route: /user/register
         type: POST
-        service: UserService
-      CreateOrder:
-        method_route: /order
+        service: AuthService
+      LoginUser:
+        method_route: /user/login
         type: POST
-        service: OrderService
-    v2:
-      CreateOrderV2:
-        method_route: /order
-        type: POST
-        service: OrderService
-  other:
-    v1:
-      PathParamsTest:
-        method_route: /{id}/asd/{name}
+        service: AuthService
+      ListNodePool:
+        method_route: /nodes/list
         type: GET
-        service: UserService
-      PathParamTest:
-        method_route: /asdf/{id}
-        type: DELETE
-        service: UserService
-      PathParamsAndBodyTest:
-        method_route: /{name}/asd/{id}
-        type: PUT
-        service: UserService
+        service: Magnetar
+      ClaimOwnership:
+        method_route: /nodes/ownership
+        type: POST
+        service: Magnetar
+      PutFloat64Label:
+        method_route: /nodes/put_label
+        type: POST
+        service: Magnetar
+      QueryOrgOwnedNodes:
+        method_route: /org/nodes
+        type: POST
+        service: Magnetar
+      CreateInheritanceRel:
+        method_route: /relations
+        type: POST
+        service: OortAdministrator
+      CreatePolicy:
+        method_route: /policies
+        type: POST
+        service: OortAdministrator
+      PutConfigGroup:
+        method_route: /config_groups
+        type: POST
+        service: Kuiper
+      ApplyConfigGroup:
+        method_route: /apply_config
+        type: POST
+        service: Kuiper
