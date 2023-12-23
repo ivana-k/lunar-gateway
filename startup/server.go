@@ -13,10 +13,12 @@ import (
 
 type Server struct {
 	config *config.Config
+	noAuthConfig *config.Config
 }
 
-func NewServer(config *config.Config) *Server {
-	return &Server{config: config}
+func NewServer(config *config.Config, noAuthConfig *config.Config) *Server {
+	return &Server{config: config,
+	noAuthConfig: noAuthConfig}
 }
 
 func (s *Server) Start() {
@@ -56,6 +58,18 @@ func (s *Server) prepareRoutes(clientRegistry *client.ClientRegistry) *mux.Route
 }
 
 func methodNameMiddleware(mtdName string, h http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "mtdName", mtdName)
+		h.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (s *Server) methodInterceptor(mtdName string, h http.HandlerFunc) http.HandlerFunc {
+	// check if mtdName is in noAuthConfig
+	// if so, skip verification
+	// else, call verification
+	log.Printf("%s", s.noAuthConfig.Groups["Core"])
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), "mtdName", mtdName)
 		h.ServeHTTP(w, r.WithContext(ctx))

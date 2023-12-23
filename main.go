@@ -13,6 +13,12 @@ func main() {
 		return
 	}
 
-	gateway := startup.NewServer(conf)
+	noAuthConf, err := config.LoadNoAuthConfig()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	gateway := startup.NewServer(conf, noAuthConf)
 	gateway.Start()
 }
