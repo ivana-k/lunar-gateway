@@ -23,23 +23,30 @@ type Client struct {
 	grpcServiceName string
 }
 
+func (client *Client) WrapGrpcMethod(writer http.ResponseWriter, req *http.Request) {
+	token := req.Header.Get("Authorization")
+	log.Printf("Found token: %s", token)
+
+	if token == "" || len(token) <= 8 {
+		http.Error(writer, "Invalid token", 401)
+		return
+	}
+	
+	response, err := InterceptRequest(token[7:])
+	if err != nil {
+		log.Printf("Response from interceptor: %s", err)
+		http.Error(writer, "Invalid token", 401)
+		return
+	}
+
+	req.Header.Add("authz-token", response)
+	client.InvokeGrpcMethod(writer, req)
+}
+
 func (client *Client) InvokeGrpcMethod(writer http.ResponseWriter, req *http.Request) {
-	log.Printf("Called InvokeGrpcMethod")
 	descSource := client.descSource
 	mtdName := req.Context().Value("mtdName").(string)
 	reader := prepareReader(req)
-
-	token := req.Header.Get("Authorization")
-	log.Printf("Found token: %s", token)
-	if token != "" {
-		response, err := InterceptRequest(token[7:])
-		if err != nil {
-			log.Printf("Response from interceptor: %s", err)
-		} else {
-			log.Printf("Token from interceptor: %s", response)
-			req.Header.Add("authz-token", response)
-		}
-	}
 
 	headers := prepareHeaders(req.Header)
 

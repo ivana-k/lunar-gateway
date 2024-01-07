@@ -18,14 +18,12 @@ func InterceptRequest(vault_token string) (string, error) {
 
 	client := iam.NewAuthServiceClient(conn)
 
-	getResp, err := client.VerifyToken(context.Background(), &iam.Token{
-			Token: vault_token,
-	}) 
+	getResp, err := client.VerifyToken(context.Background(), &iam.Token{Token: vault_token,}) 
 	if err != nil {
 		fmt.Println(err)
 		return "", err
-	} else {
-		return getResp.Token.Jwt, nil
-	}
+	} 
+	
+	return getResp.Token.Jwt, nil
 }
 

@@ -6,14 +6,17 @@ import (
 	"gateway/startup"
 )
 
+var path = "config.yml"
+var noAuthPath = "no_auth_config.yml"
+
 func main() {
-	conf, err := config.LoadConfig()
+	conf, err := config.LoadConfig(path)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	noAuthConf, err := config.LoadNoAuthConfig()
+	noAuthConf, err := config.LoadConfig(noAuthPath)
 	if err != nil {
 		fmt.Println(err)
 		return

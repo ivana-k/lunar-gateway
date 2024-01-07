@@ -22,9 +22,9 @@ type MethodConfig struct {
 	Service     string `yaml:"service"`
 }
 
-func LoadConfig() (*Config, error) {
-	path := "config.yml"
 
+
+func LoadConfig(path string) (*Config, error) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -38,19 +38,4 @@ func LoadConfig() (*Config, error) {
 	return &conf, nil
 }
 
-// loading methods that should pass withput token
-func LoadNoAuthConfig() (*Config, error) {
-	path := "no_auth_config.yml"
 
-	yamlFile, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var conf Config
-	err = yaml.Unmarshal(yamlFile, &conf)
-	if err != nil {
-		return nil, err
-	}
-	return &conf, nil
-}
