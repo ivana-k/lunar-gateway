@@ -1,0 +1,17 @@
+gateway:
+  route: /apis
+  port: 5555
+services:
+  AuthService: iam-service:8002
+groups:
+  core:
+    v1:
+      RegisterUser:
+        method_route: /user/register
+        type: POST
+        service: AuthService
+      LoginUser:
+        method_route: /user/login
+        type: POST
+        service: AuthService
+      

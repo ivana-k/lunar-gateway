@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-
 	"gopkg.in/yaml.v3"
 )
 
@@ -23,9 +22,9 @@ type MethodConfig struct {
 	Service     string `yaml:"service"`
 }
 
-func LoadConfig() (*Config, error) {
-	path := "config.yml"
 
+
+func LoadConfig(path string) (*Config, error) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -38,3 +37,5 @@ func LoadConfig() (*Config, error) {
 	}
 	return &conf, nil
 }
+
+

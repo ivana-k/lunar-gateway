@@ -13,14 +13,19 @@ import (
 
 type Server struct {
 	config *config.Config
+	noAuthConfig *config.Config
+	noAuthMethods []string
 }
 
-func NewServer(config *config.Config) *Server {
-	return &Server{config: config}
+func NewServer(config *config.Config, noAuthConfig *config.Config) *Server {
+	return &Server{config: config,
+	noAuthConfig: noAuthConfig,
+	noAuthMethods: nil}
 }
 
 func (s *Server) Start() {
 	clientRegistry := s.prepareClients()
+	s.noAuthMethods = getNoAuthMethods(s.noAuthConfig.Groups["core"]["v1"])
 	router := s.prepareRoutes(clientRegistry)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", s.config.Gateway.Port), router))
 }
@@ -47,7 +52,7 @@ func (s *Server) prepareRoutes(clientRegistry *client.ClientRegistry) *mux.Route
 			for mtdName, mtdConf := range methods {
 				log.Printf("Name %s Conf %+v", mtdName, mtdConf)
 				client := clientRegistry.Clients[mtdConf.Service]
-				versionRouter.Path(mtdConf.MethodRoute).HandlerFunc(methodNameMiddleware(mtdName, client.InvokeGrpcMethod)).Methods(mtdConf.Type)
+				versionRouter.Path(mtdConf.MethodRoute).HandlerFunc(s.methodInterceptor(mtdName, client)).Methods(mtdConf.Type)
 			}
 		}
 	}
@@ -55,9 +60,33 @@ func (s *Server) prepareRoutes(clientRegistry *client.ClientRegistry) *mux.Route
 	return router
 }
 
-func methodNameMiddleware(mtdName string, h http.HandlerFunc) http.HandlerFunc {
+func (s *Server) methodInterceptor(mtdName string, client client.Client) http.HandlerFunc {
+	var h http.HandlerFunc
+	if isNoAuthMethod(mtdName, s.noAuthMethods) {
+		h = client.InvokeGrpcMethod
+	} else {
+		h = client.WrapGrpcMethod
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), "mtdName", mtdName)
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func getNoAuthMethods(noAuthMap map[string]config.MethodConfig) []string {
+	keys := make([]string, 0, len(noAuthMap))
+    for key := range noAuthMap {
+        keys = append(keys, key)
+    }
+	return keys
+}
+
+func isNoAuthMethod(mtd string, noAuthMethods []string) bool {
+	for _, element := range noAuthMethods {
+		if element == mtd {
+			return true
+		}
+	}
+	return false
 }

@@ -23,10 +23,31 @@ type Client struct {
 	grpcServiceName string
 }
 
+func (client *Client) WrapGrpcMethod(writer http.ResponseWriter, req *http.Request) {
+	token := req.Header.Get("Authorization")
+	log.Printf("Found token: %s", token)
+
+	if token == "" || len(token) <= 8 {
+		http.Error(writer, "Invalid token", 401)
+		return
+	}
+	
+	response, err := InterceptRequest(token[7:])
+	if err != nil {
+		log.Printf("Response from interceptor: %s", err)
+		http.Error(writer, "Invalid token", 401)
+		return
+	}
+
+	req.Header.Add("authz-token", response)
+	client.InvokeGrpcMethod(writer, req)
+}
+
 func (client *Client) InvokeGrpcMethod(writer http.ResponseWriter, req *http.Request) {
 	descSource := client.descSource
 	mtdName := req.Context().Value("mtdName").(string)
 	reader := prepareReader(req)
+
 	headers := prepareHeaders(req.Header)
 
 	var resultBuffer bytes.Buffer
@@ -44,8 +65,11 @@ func (client *Client) InvokeGrpcMethod(writer http.ResponseWriter, req *http.Req
 		return
 	}
 
+	log.Printf("Status code: %s", h.Status.Code())
+
 	httpCode := statusCodes[h.Status.Code()]
 	if h.Status.Message() != "" {
+		log.Printf(h.Status.Message())
 		http.Error(writer, h.Status.Message(), httpCode)
 		return
 	}
@@ -80,6 +104,7 @@ func prepareHeaders(headers http.Header) []string {
 		if k == "Connection" {
 			continue
 		}
+		fmt.Printf("%s: %s", k, v[0])
 		preparedHeaders = append(preparedHeaders, fmt.Sprintf("%s: %s", k, v[0]))
 	}
 	return preparedHeaders
