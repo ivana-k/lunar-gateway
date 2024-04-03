@@ -10,28 +10,48 @@ groups:
   core:
     v1:
       RegisterUser:
-        method_route: /user/register
+        method_route: /user
         type: POST
         service: AuthService
       LoginUser:
-        method_route: /user/login
+        method_route: /auth
         type: POST
         service: AuthService
       ListNodePool:
-        method_route: /nodes/list
+        method_route: /nodes/available
+        type: GET
+        service: Magnetar
+      ListOrgOwnedNodes:
+        method_route: /nodes/allocated
+        type: GET
+        service: Magnetar
+      QueryNodePool:
+        method_route: /nodes/available/query_match
+        type: GET
+        service: Magnetar
+      QueryOrgOwnedNodes:
+        method_route: /nodes/allocated/query_match
         type: GET
         service: Magnetar
       ClaimOwnership:
-        method_route: /nodes/ownership
-        type: POST
+        method_route: /nodes
+        type: PATCH
         service: Magnetar
       PutFloat64Label:
-        method_route: /nodes/put_label
+        method_route: /labels/float64
         type: POST
         service: Magnetar
-      QueryOrgOwnedNodes:
-        method_route: /org/nodes
+      PutBoolLabel:
+        method_route: /labels/bool
         type: POST
+        service: Magnetar
+      PutStringLabel:
+        method_route: /labels/string
+        type: POST
+        service: Magnetar
+      DeleteLabel:
+        method_route: /labels
+        type: DELETE
         service: Magnetar
       CreateInheritanceRel:
         method_route: /relations
@@ -42,10 +62,10 @@ groups:
         type: POST
         service: OortAdministrator
       PutConfigGroup:
-        method_route: /config_groups
+        method_route: /configs
         type: POST
         service: Kuiper
       ApplyConfigGroup:
-        method_route: /apply_config
+        method_route: /configs/applications
         type: POST
         service: Kuiper

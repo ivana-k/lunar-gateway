@@ -2,16 +2,25 @@ gateway:
   route: /apis
   port: 5555
 services:
+  Magnetar: magnetar:5000
   AuthService: iam-service:8002
 groups:
   core:
     v1:
       RegisterUser:
-        method_route: /user/register
+        method_route: /user
         type: POST
         service: AuthService
       LoginUser:
-        method_route: /user/login
+        method_route: /auth
         type: POST
         service: AuthService
+      ListNodePool:
+        method_route: /nodes/available
+        type: GET
+        service: Magnetar
+      QueryNodePool:
+        method_route: /nodes/available/query_match
+        type: GET
+        service: Magnetar
       
