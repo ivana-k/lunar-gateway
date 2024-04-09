@@ -6,7 +6,7 @@ services:
   Kuiper: kuiper:9001
   AuthService: iam-service:8002
   OortAdministrator: oort:8000
-  Quasar: quasar:9090
+  ConfigSchemaService: quasar:9090
 groups:
   core:
     v1:
@@ -121,20 +121,20 @@ groups:
       SaveConfigSchema:
         method_route: /schemas
         type: POST
-        service: Quasar
+        service: ConfigSchemaService
       GetConfigSchema:
         method_route: /schemas
         type: GET
-        service: Quasar
+        service: ConfigSchemaService
       DeleteConfigSchema:
         method_route: /schemas
         type: DELETE
-        service: Quasar
+        service: ConfigSchemaService
       ValidateConfiguration:
         method_route: /schemas/validations
         type: GET
-        service: Quasar
+        service: ConfigSchemaService
       GetConfigSchemaVersions:
         method_route: /schemas/versions
         type: GET
-        service: Quasar
+        service: ConfigSchemaService
