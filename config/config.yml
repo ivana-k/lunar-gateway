@@ -10,7 +10,7 @@ groups:
   core:
     v1:
       RegisterUser:
-        method_route: /user
+        method_route: /users
         type: POST
         service: AuthService
       LoginUser:
@@ -61,11 +61,59 @@ groups:
         method_route: /policies
         type: POST
         service: OortAdministrator
-      PutConfigGroup:
-        method_route: /configs
+      PutStandaloneConfig:
+        method_route: /configs/standalone
         type: POST
         service: Kuiper
-      ApplyConfigGroup:
-        method_route: /configs/applications
+      GetStandaloneConfig:
+        method_route: /configs/standalone/single
+        type: GET
+        service: Kuiper
+      ListStandaloneConfig:
+        method_route: /configs/standalone
+        type: GET
+        service: Kuiper
+      DeleteStandaloneConfig:
+        method_route: /configs/standalone
+        type: DELETE
+        service: Kuiper
+      PlaceStandaloneConfig:
+        method_route: /configs/standalone/placements
         type: POST
+        service: Kuiper
+      ListPlacementTaskByStandaloneConfig:
+        method_route: /configs/standalone/placements
+        type: GET
+        service: Kuiper
+      DiffStandaloneConfig:
+        method_route: /configs/standalone/diff
+        type: GET
+        service: Kuiper
+      PutConfigGroup:
+        method_route: /configs/groups
+        type: POST
+        service: Kuiper
+      GetConfigGroup:
+        method_route: /configs/groups/single
+        type: GET
+        service: Kuiper
+      ListConfigGroup:
+        method_route: /configs/groups
+        type: GET
+        service: Kuiper
+      DeleteConfigGroup:
+        method_route: /configs/groups
+        type: DELETE
+        service: Kuiper
+      PlaceConfigGroup:
+        method_route: /configs/groups/placements
+        type: POST
+        service: Kuiper
+      ListPlacementTaskByConfigGroup:
+        method_route: /configs/groups/placements
+        type: GET
+        service: Kuiper
+      DiffConfigGroup:
+        method_route: /configs/groups/diff
+        type: GET
         service: Kuiper
