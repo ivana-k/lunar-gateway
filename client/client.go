@@ -120,4 +120,5 @@ var statusCodes = map[codes.Code]int{
 	codes.AlreadyExists:    http.StatusBadRequest,
 	codes.NotFound:         http.StatusNotFound,
 	codes.Unknown:          http.StatusInternalServerError,
+	codes.InvalidArgument:  http.StatusBadRequest,
 }
