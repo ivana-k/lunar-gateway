@@ -31,7 +31,7 @@ func (client *Client) WrapGrpcMethod(writer http.ResponseWriter, req *http.Reque
 		http.Error(writer, "Invalid token", 401)
 		return
 	}
-	
+
 	response, err := InterceptRequest(token[7:])
 	if err != nil {
 		log.Printf("Response from interceptor: %s", err)
@@ -111,10 +111,14 @@ func prepareHeaders(headers http.Header) []string {
 }
 
 var statusCodes = map[codes.Code]int{
-	codes.Internal:         http.StatusBadRequest,
+	codes.Internal:         http.StatusInternalServerError,
 	codes.Unauthenticated:  http.StatusUnauthorized,
 	codes.PermissionDenied: http.StatusForbidden,
-	codes.Unimplemented:    http.StatusNotFound,
+	codes.Unimplemented:    http.StatusNotImplemented,
 	codes.Unavailable:      http.StatusServiceUnavailable,
 	codes.OK:               http.StatusOK,
+	codes.AlreadyExists:    http.StatusBadRequest,
+	codes.NotFound:         http.StatusNotFound,
+	codes.Unknown:          http.StatusInternalServerError,
+	codes.InvalidArgument:  http.StatusBadRequest,
 }
