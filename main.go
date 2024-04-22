@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gateway/config"
 	"gateway/startup"
-	"os"
 )
 
 var path = "config.yml"
@@ -23,12 +22,6 @@ func main() {
 		return
 	}
 
-	args := os.Args
-	useRateLimiter := false
-	if len(args) > 1 && args[0] == "sysrl" {
-		useRateLimiter = true
-	}
-
-	gateway := startup.NewServer(conf, noAuthConf, useRateLimiter)
+	gateway := startup.NewServer(conf, noAuthConf)
 	gateway.Start()
 }

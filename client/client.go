@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/fullstorydev/grpcurl"
 	"github.com/goccy/go-json"
@@ -26,27 +25,17 @@ type Client struct {
 
 func (client *Client) WrapGrpcMethod(writer http.ResponseWriter, req *http.Request) {
 	token := req.Header.Get("Authorization")
+	log.Printf("Found token: %s", token)
 
 	if token == "" || len(token) <= 8 {
-		http.Error(writer, "Invalid token", http.StatusUnauthorized)
+		http.Error(writer, "Invalid token", 401)
 		return
 	}
 
-	response, username, err := InterceptRequest(token[7:])
+	response, err := InterceptRequest(token[7:])
 	if err != nil {
-		http.Error(writer, "Invalid token", http.StatusUnauthorized)
-		return
-	}
-
-	rl_response, err := CallRateLimiter(username, req.Context().Value("mtdName").(string))
-
-	/*if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
-		return
-	}*/
-
-	if !rl_response && err == nil {
-		http.Error(writer, os.Getenv("rl.user.message"), http.StatusBadRequest)
+		log.Printf("Response from interceptor: %s", err)
+		http.Error(writer, "Invalid token", 401)
 		return
 	}
 
@@ -80,6 +69,7 @@ func (client *Client) InvokeGrpcMethod(writer http.ResponseWriter, req *http.Req
 
 	httpCode := statusCodes[h.Status.Code()]
 	if h.Status.Message() != "" {
+		log.Printf(h.Status.Message())
 		http.Error(writer, h.Status.Message(), httpCode)
 		return
 	}
@@ -87,16 +77,6 @@ func (client *Client) InvokeGrpcMethod(writer http.ResponseWriter, req *http.Req
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(httpCode)
 	writer.Write(resultBuffer.Bytes())
-}
-
-func (client *Client) WithSystemRateLimiter(writer http.ResponseWriter, req *http.Request) bool {
-	rl_response, err := CallRateLimiter("system", "")
-
-	if err != nil || !rl_response {
-		return false
-	}
-
-	return true
 }
 
 func prepareReader(req *http.Request) io.Reader {
