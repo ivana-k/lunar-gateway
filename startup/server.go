@@ -43,6 +43,13 @@ func (s *Server) prepareClients() *client.ClientRegistry {
 		clientRegistry.NewClient(k, v)
 	}
 
+	for k, v := range s.noAuthConfig.Services {
+		_, ok := clientRegistry.Clients[k]
+		if !ok {
+			clientRegistry.NewClient(k, v)
+		}
+	}
+
 	return clientRegistry
 }
 func (s *Server) prepareRoutes(clientRegistry *client.ClientRegistry) *mux.Router {
